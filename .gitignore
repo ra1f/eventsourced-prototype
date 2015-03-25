@@ -1,0 +1,5 @@
+.idea/
+target/
+eventsourced-prototype.iml
+event-registry-module/target
+event-registry-module/event-registry-module.iml
