@@ -37,6 +37,11 @@
             <artifactId>spring-boot-starter-jetty</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.netflix.rxjava</groupId>
+            <artifactId>rxjava-core</artifactId>
+            <version>0.20.7</version>
+        </dependency>
     </dependencies>
 
     <build>
