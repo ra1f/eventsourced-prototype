@@ -1,6 +1,4 @@
-package events;
-
-import commands.Command;
+package common;
 
 /**
  * Created by dueerkopra on 27.03.2015.
