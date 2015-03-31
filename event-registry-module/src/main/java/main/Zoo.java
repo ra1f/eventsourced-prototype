@@ -1,5 +1,6 @@
-package persistence;
+package main;
 
+import common.AnimalId;
 import common.FeelingOfSatiety;
 import common.Hygiene;
 import common.Mindstate;
@@ -16,7 +17,8 @@ import java.util.Date;
 public class Zoo {
 
   @Id
-  private String animalId;
+  @Enumerated(EnumType.STRING)
+  private AnimalId animalId;
 
   @Column(name = "last_occurence")
   @Temporal(TemporalType.TIMESTAMP)
@@ -34,11 +36,11 @@ public class Zoo {
   @Enumerated(EnumType.STRING)
   private Hygiene hygiene;
 
-  public String getAnimalId() {
+  public AnimalId getAnimalId() {
     return animalId;
   }
 
-  public void setAnimalId(String animalId) {
+  public void setAnimalId(AnimalId animalId) {
     this.animalId = animalId;
   }
 

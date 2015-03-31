@@ -4,14 +4,30 @@ package common;
  * Created by dueerkopra on 27.03.2015.
  */
 public enum Event {
-  Digested(Command.Digest),
-  Fed(Command.Feed),
-  Saddened(Command.Sadden),
-  Played(Command.Play),
-  MessedUp(Command.MessUp),
-  CleanedUp(Command.CleanUp);
+  Digested, Fed, Saddened, Played, MessedUp, CleanedUp;
 
-  private Command command;
-
-  Event(Command command) { this.command = command; }
+  public static Event fromCommand(Command command) {
+    Event event = null;
+    switch (command) {
+      case Digest:
+        event = Digested;
+        break;
+      case Feed:
+        event = Fed;
+        break;
+      case Sadden:
+        event = Saddened;
+        break;
+      case Play:
+        event = Played;
+        break;
+      case MessUp:
+        event = MessedUp;
+        break;
+      case CleanUp:
+        event = CleanedUp;
+        break;
+    }
+    return event;
+  }
 }

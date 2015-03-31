@@ -5,13 +5,13 @@ package models;
  */
 public class CommandResultDto {
 
-  private int commandsAdded;
+  private int commandsExecuted;
 
-  public int getCommandsAdded() {
-    return commandsAdded;
+  public int getCommandsExecuted() {
+    return commandsExecuted;
   }
 
-  public void setCommandsAdded(int commandsAdded) {
-    this.commandsAdded = commandsAdded;
+  public void setCommandsExecuted(int commandsExecuted) {
+    this.commandsExecuted = commandsExecuted;
   }
 }
