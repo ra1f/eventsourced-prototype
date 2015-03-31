@@ -1,4 +1,4 @@
-DATABASE=eventsourced
+DATABASE=postgres
 PASSWORD=
 
 all:
