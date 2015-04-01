@@ -37,6 +37,17 @@ public class Zoo {
   @Enumerated(EnumType.STRING)
   private Hygiene hygiene;
 
+  @Version
+  @Column(name = "optlock")
+  private Integer version;
+
+  /**
+   * Convinience constructor
+   * @param animalId
+   * @param feelingOfSatiety
+   * @param mindstate
+   * @param hygiene
+   */
   public Zoo(AnimalId animalId, FeelingOfSatiety feelingOfSatiety, Mindstate mindstate, Hygiene hygiene) {
     this.animalId = animalId;
     this.feelingOfSatiety = feelingOfSatiety;
@@ -44,6 +55,32 @@ public class Zoo {
     this.hygiene = hygiene;
   }
 
+  /**
+   * Copy contructor
+   * @param animalId
+   * @param lastOccurence
+   * @param feelingOfSatiety
+   * @param mindstate
+   * @param hygiene
+   * @param version
+   */
+  public Zoo(AnimalId animalId,
+             Date lastOccurence,
+             FeelingOfSatiety feelingOfSatiety,
+             Mindstate mindstate,
+             Hygiene hygiene,
+             Integer version) {
+    this.animalId = animalId;
+    this.lastOccurence = lastOccurence;
+    this.feelingOfSatiety = feelingOfSatiety;
+    this.mindstate = mindstate;
+    this.hygiene = hygiene;
+    this.version = version;
+  }
+
+  /**
+   * Hibernate constructor
+   */
   protected Zoo() {}
 
   public AnimalId getAnimalId() {
@@ -86,6 +123,14 @@ public class Zoo {
     this.hygiene = hygiene;
   }
 
+  public Integer getVersion() {
+    return version;
+  }
+
+  public void setVersion(Integer version) {
+    this.version = version;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -115,11 +160,12 @@ public class Zoo {
   @Override
   public String toString() {
     return String.format(
-        "Zoo[animalId='%s', lastOccurence='%s', feelingOfSatiety='%s', mindstate='%s', hygiene='%s']",
+        "Zoo[animalId='%s', lastOccurence='%s', feelingOfSatiety='%s', mindstate='%s', hygiene='%s', version='%d']",
         animalId,
         new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(lastOccurence),
         feelingOfSatiety,
         mindstate,
-        hygiene);
+        hygiene,
+        version);
   }
 }

@@ -7,7 +7,7 @@ public enum FeelingOfSatiety {
   full, hungry, starving, dead;
 
   public FeelingOfSatiety next(Command command) {
-    FeelingOfSatiety retVal = null;
+    FeelingOfSatiety retVal = this;
     switch (command) {
       case Digest:
         if (this.equals(full)) retVal = hungry;
@@ -19,9 +19,6 @@ public enum FeelingOfSatiety {
         if (this.equals(starving)) retVal = hungry;
         if (this.equals(hungry)) retVal = full;
         else retVal = full;
-        break;
-      default:
-        retVal = this;
     }
     return retVal;
   }
