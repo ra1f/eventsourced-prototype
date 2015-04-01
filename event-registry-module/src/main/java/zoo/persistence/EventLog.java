@@ -1,7 +1,7 @@
-package main;
+package zoo.persistence;
 
-import common.AnimalId;
-import common.Event;
+import zoo.common.AnimalId;
+import zoo.common.Event;
 
 import javax.persistence.*;
 import java.text.SimpleDateFormat;
@@ -22,7 +22,7 @@ public class EventLog {
   @Enumerated(EnumType.STRING)
   private Event event;
 
-  @Column(name = "animalId")
+  @Column(name = "animal_id")
   @Enumerated(EnumType.STRING)
   private AnimalId animalId;
 

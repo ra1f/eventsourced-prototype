@@ -30,7 +30,8 @@ Change directory to the mount point:
 
 ## REST requests
 
-curl -H "Content-Type: application/json" -d '[{"command":"Digest", "animalId":"Lions", "timestamp":"2015-03-31T14:17:01.123-0700"}]' http://localhost:8080/commands
-curl -H "Content-Type: application/json" -d '[{"command":"Digest", "animalId":"Lions", "timestamp":"2015-03-31T14:17:01.123-0700"},
+>curl -H "Content-Type: application/json" -d '[{"command":"Digest", "animalId":"Lions", "timestamp":"2015-03-31T14:17:01.123-0700"}]' http://localhost:8080/commands
+
+>curl -H "Content-Type: application/json" -d '[{"command":"Digest", "animalId":"Lions", "timestamp":"2015-03-31T14:17:01.123-0700"},
 {"command":"Sadden", "animalId":"Monkeys", "timestamp":1400000000000}]' http://localhost:8080/commands
 

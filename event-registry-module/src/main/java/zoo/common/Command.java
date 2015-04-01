@@ -1,4 +1,4 @@
-package common;
+package zoo.common;
 
 /**
  * Created by dueerkopra on 27.03.2015.

@@ -1,8 +1,11 @@
-package main;
+package zoo.controllers;
 
-import common.Event;
-import models.CommandDto;
-import models.CommandResultDto;
+import zoo.common.Event;
+import zoo.services.CommandHandler;
+import zoo.persistence.EventLog;
+import zoo.persistence.EventLogRepository;
+import zoo.models.CommandDto;
+import zoo.models.CommandResultDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +38,20 @@ public class CommandController {
                                      c.getCommand(),
                                      c.getAnimalId(),
                                      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTimestamp()))));
+
     CommandResultDto result = new CommandResultDto();
     commandHandler.processCommands(commands).subscribe(
-      zoo -> result.setCommandsExecuted(result.getCommandsExecuted() + 1));
+      zoo -> {
+        result.setCommandsExecuted(result.getCommandsExecuted() + 1);
+        logger.debug("Successfully inserted " + zoo.toString());
+      },
+      exception -> {
+        result.setCommandsExecuted(result.getCommandsExecuted() + 1);
+        logger.debug("Error occurred " + exception.getMessage());
+      },
+      () -> {
+        logger.debug("Finished.");
+      });
 
     eventLogRepository.save(commands.stream().map(
      command -> new EventLog(Event.fromCommand(command.getCommand()),

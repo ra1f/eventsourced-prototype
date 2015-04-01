@@ -1,4 +1,4 @@
-package models;
+package zoo.models;
 
 /**
  * Created by dueerkopra on 30.03.2015.

@@ -1,11 +1,12 @@
-package main;
+package zoo.services;
 
-import common.AnimalId;
-import common.Command;
-import models.CommandDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rx.Observable;
+import zoo.common.*;
+import zoo.models.CommandDto;
+import zoo.persistence.Zoo;
+import zoo.persistence.ZooRepository;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class CommandHandler {
     return Observable.create(subscriber -> {
           try {
             for (CommandDto command : commands) {
-              subscriber.onNext(newState(command, getState(command.getAnimalId())));
+              subscriber.onNext(applyCommand(command, getState(command.getAnimalId())));
             }
 
           } catch (Exception e) {
@@ -36,10 +37,12 @@ public class CommandHandler {
   }
 
   private Zoo getState(AnimalId animalId) {
-    return zooRepository.findOne(animalId);
+    Zoo zoo = zooRepository.findOne(animalId);
+    if (zoo == null) zoo = new Zoo(animalId, FeelingOfSatiety.full, Mindstate.happy, Hygiene.tidy);
+    return zoo;
   }
 
-  private Zoo newState(CommandDto commandDto, Zoo zoo) {
+  private Zoo applyCommand(CommandDto commandDto, Zoo zoo) {
     zoo.setLastOccurence(commandDto.getTimestamp());
     Command command = commandDto.getCommand();
     switch (command) {
@@ -52,6 +55,7 @@ public class CommandHandler {
       case MessUp:
       case CleanUp:
     }
+    zooRepository.save(zoo);
     return zoo;
   }
 }

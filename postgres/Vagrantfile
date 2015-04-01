@@ -6,6 +6,16 @@ BOX_NAME = "eventsourced-postgres"
 
 Vagrant.configure("2") do |config|
 
+  if Vagrant.has_plugin?("vagrant-proxyconf")
+  	proxynameport = ENV['http_proxy'].to_s == ''? ENV['HTTP_PROXY']: ENV['http_proxy']
+
+    if proxynameport.to_s != ''
+      config.proxy.http     = "http://#{proxynameport}"
+      config.proxy.https    = "https://#{proxynameport}"
+      config.proxy.no_proxy = "localhost,127.0.0.1,/var/run/docker.sock"
+    end
+  end
+
   config.vm.box = "ubuntu/trusty64"
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
   config.vm.define BOX_NAME do |t| end
@@ -15,16 +25,6 @@ Vagrant.configure("2") do |config|
   config.vm.provider :virtualbox do |vbox|
     vbox.name = BOX_NAME
     vbox.memory = 1024
-  end
-  
-  if Vagrant.has_plugin?("vagrant-proxyconf")
-  	proxynameport = ENV['http_proxy'].to_s == ''? ENV['HTTP_PROXY']: ''
-
-    if proxynameport.to_s != ''
-      config.proxy.http     = "http://#{proxynameport}"
-      config.proxy.https    = "https://#{proxynameport}"
-      config.proxy.no_proxy = "localhost,127.0.0.1,/var/run/docker.sock"
-    end
   end
 
   config.vm.provision :shell, :inline => "mkdir -p /var/lib/cloud/instance; touch /var/lib/cloud/instance/locale-check.skip"

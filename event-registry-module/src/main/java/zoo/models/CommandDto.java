@@ -1,7 +1,7 @@
-package models;
+package zoo.models;
 
-import common.Command;
-import common.AnimalId;
+import zoo.common.Command;
+import zoo.common.AnimalId;
 
 import java.util.Date;
 

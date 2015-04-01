@@ -2,36 +2,21 @@ DATABASE=postgres
 PASSWORD=
 
 all:
-    #@echo "make build -- create image with custom initialization scripts"
-	@echo "make run-postgres -- start postgres database"
-	@echo "make create-db -- creates a database named $(DATABASE)"
-	@echo "make create-tables -- creates tables for database $(DATABASE)"
-	@echo "make drop-db -- drops a database named $(DATABASE)"
+	@echo "make build_image -- create image with custom initialization scripts"
+	@echo "make start-postgres -- start postgres database"
 	@echo "make run-psql -- run database client psql"
 	@echo "make stop-postgres -- stop postgres database"
 	@echo "make clean-images -- cleans docker images"
 
-build:
+build_image:
 	@echo "+++ Starting image creation +++"
 	@docker build -t ra1f/postgres .
 	@docker images
 
-run-postgres:
+start-postgres:
 	@echo "+++ Starting Postgres +++"
 	@export PGPASSWORD=$(PASSWORD)
-	-@docker run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=$(PASSWORD) -d ra1f/postgres:latest
-	
-create-db:
-	@echo "+++ Creating Database +++"
-	-@docker run -it --link some-postgres:postgres --rm postgres sh -c 'exec createdb -h "$$POSTGRES_PORT_5432_TCP_ADDR" -p "$$POSTGRES_PORT_5432_TCP_PORT" -U postgres $(DATABASE)'
-	
-create-tables:
-	@echo "+++ Creating Tables +++"
-	-@docker run -it --link some-postgres:postgres --rm postgres sh -c 'exec psql -d $(DATABASE) -f create.sql -h "$$POSTGRES_PORT_5432_TCP_ADDR" -p "$$POSTGRES_PORT_5432_TCP_PORT" -U postgres'
-
-drop-db:
-	@echo "+++ Dropping Database +++"
-	-@docker run -it --link some-postgres:postgres --rm postgres sh -c 'exec dropdb -h "$$POSTGRES_PORT_5432_TCP_ADDR" -p "$$POSTGRES_PORT_5432_TCP_PORT" -U postgres $(DATABASE)'
+	@docker run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=$(PASSWORD) -d ra1f/postgres:latest
 	
 run-psql:
 	@echo "+++ Starting psql +++"

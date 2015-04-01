@@ -1,9 +1,9 @@
-package main;
+package zoo.persistence;
 
-import common.AnimalId;
-import common.FeelingOfSatiety;
-import common.Hygiene;
-import common.Mindstate;
+import zoo.common.AnimalId;
+import zoo.common.FeelingOfSatiety;
+import zoo.common.Hygiene;
+import zoo.common.Mindstate;
 
 import javax.persistence.*;
 import java.text.SimpleDateFormat;
@@ -17,6 +17,7 @@ import java.util.Date;
 public class Zoo {
 
   @Id
+  @Column(name="animal_id")
   @Enumerated(EnumType.STRING)
   private AnimalId animalId;
 
@@ -35,6 +36,15 @@ public class Zoo {
   @Column(name = "hygiene")
   @Enumerated(EnumType.STRING)
   private Hygiene hygiene;
+
+  public Zoo(AnimalId animalId, FeelingOfSatiety feelingOfSatiety, Mindstate mindstate, Hygiene hygiene) {
+    this.animalId = animalId;
+    this.feelingOfSatiety = feelingOfSatiety;
+    this.mindstate = mindstate;
+    this.hygiene = hygiene;
+  }
+
+  protected Zoo() {}
 
   public AnimalId getAnimalId() {
     return animalId;
