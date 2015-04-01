@@ -3,7 +3,7 @@ package zoo.services;
 /**
  * Created by dueerkopra on 01.04.2015.
  */
-public class InconsistencyException extends Exception {
+public class InconsistencyException extends RuntimeException {
 
   public InconsistencyException() {
   }

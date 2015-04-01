@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -23,22 +24,25 @@ public class CommandHandler {
   @Autowired
   private ZooRepository zooRepository;
 
+  /**
+   *
+   * @param commands
+   * @return
+   */
   public Observable<Zoo> processCommands(List<CommandDto> commands) {
 
-    List <AnimalId> animalIds = commands.stream().map(command -> command.getAnimalId())
-        .parallel()
-        .distinct()
-        .collect(Collectors.toList());
-
-    Map<AnimalId, List<CommandDto>> parts = commands.stream()
+    // Make many lists out of one list grouping by AnimalId
+    Map<AnimalId, List<CommandDto>> commandsPerAnimalId = commands.stream()
         .collect(Collectors.groupingBy(commandDto -> commandDto.getAnimalId()));
-    //parts.forEach((id, cs) -> cs.stream().sorted(c -> c.getTimestamp()));
+
+    // Reduce a list of commands by applying it to a Zoo entity
+    BiFunction<Zoo, ? super CommandDto, Zoo> reduceFunction = (zoo, commandDto) -> applyCommand(commandDto, zoo);
+
     return Observable.create(subscriber -> {
           try {
-            for (CommandDto command : commands) {
-              subscriber.onNext(applyCommand(command, getState(command.getAnimalId())));
-            }
-
+            commandsPerAnimalId.forEach((id, cs) -> {
+              subscriber.onNext(zooRepository.save(cs.stream().reduce(getState(id), reduceFunction, (z1, z2) -> z2)));
+            });
           } catch (Exception e) {
             subscriber.onError(e);
           } finally {
@@ -48,21 +52,33 @@ public class CommandHandler {
     );
   }
 
+  /**
+   * Retrieves a Zoo entity as a snapshot from database or creates a new default if there is none for the animalId.
+   * @param animalId
+   * @return
+   */
   private Zoo getState(AnimalId animalId) {
     Zoo zoo = zooRepository.findOne(animalId);
     if (zoo == null) zoo = new Zoo(animalId, FeelingOfSatiety.full, Mindstate.happy, Hygiene.tidy);
     return zoo;
   }
 
-  private Zoo applyCommand(CommandDto commandDto, Zoo zoo) throws InconsistencyException {
+  /**
+   * Applies a command to a Zoo entity and thereby changes its state.
+   * @param commandDto
+   * @param zoo
+   * @return The new Zoo entity
+   */
+  private Zoo applyCommand(CommandDto commandDto, Zoo zoo) {
     Zoo result = new Zoo(zoo.getAnimalId(),
         zoo.getLastOccurence(),
         zoo.getFeelingOfSatiety(),
         zoo.getMindstate(),
         zoo.getHygiene(),
         zoo.getVersion());
-    Date oldTs = result.getLastOccurence();
+    Date oldTs = zoo.getLastOccurence();
     Date newTs = commandDto.getTimestamp();
+    // The condition must hold that the successor timestamp is later otherwise an exception is thrown.
     if (oldTs == null || oldTs.compareTo(newTs) < 0) {
       result.setLastOccurence(commandDto.getTimestamp());
     } else {
@@ -85,7 +101,6 @@ public class CommandHandler {
       case CleanUp:
         result.setHygiene(result.getHygiene().next(command));
     }
-    zooRepository.save(result);
     return result;
   }
 }
