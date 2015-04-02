@@ -53,7 +53,7 @@ public class RxJavaSample {
     }
   }
 
-  public static void main(String[] args) throws Exception {
+  public static void mainXXX(String[] args) throws Exception {
 
     Videos videos = new Videos();
     Observable<Video> videoObservable = videos.getVideos(new User("joe", Arrays.asList(new Video("V1", new Rating(9)), new Video("V2", new Rating(3)))));

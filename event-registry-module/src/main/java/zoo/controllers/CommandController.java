@@ -42,21 +42,25 @@ public class CommandController {
     CommandResultDto result = new CommandResultDto();
     commandHandler.processCommands(commands).subscribe(
       zoo -> {
-        result.setCommandsExecuted(result.getCommandsExecuted() + 1);
         logger.debug("Successfully inserted " + zoo.toString());
       },
       exception -> {
-        result.setCommandsExecuted(result.getCommandsExecuted() + 1);
         logger.debug("Error occurred " + exception.getMessage());
       },
       () -> {
         logger.debug("Finished.");
       });
 
-    eventLogRepository.save(commands.stream().map(
-     command -> new EventLog(Event.fromCommand(command.getCommand()),
-                             command.getAnimalId(),
-                             command.getTimestamp())).collect(Collectors.toList()));
+    try {
+      eventLogRepository.save(commands.stream().map(
+          command -> new EventLog(Event.fromCommand(command.getCommand()),
+              command.getAnimalId(),
+              command.getTimestamp())).collect(Collectors.toList()));
+      result.setSuccess(true);
+    } catch (Exception e) {
+      logger.error("Could not save events to evetlog", e);
+      result.setSuccess(false);
+    }
 
     return result;
   }

@@ -5,13 +5,13 @@ package zoo.models;
  */
 public class CommandResultDto {
 
-  private int commandsExecuted;
+  private boolean success;
 
-  public int getCommandsExecuted() {
-    return commandsExecuted;
+  public boolean isSuccess() {
+    return success;
   }
 
-  public void setCommandsExecuted(int commandsExecuted) {
-    this.commandsExecuted = commandsExecuted;
+  public void setSuccess(boolean success) {
+    this.success = success;
   }
 }

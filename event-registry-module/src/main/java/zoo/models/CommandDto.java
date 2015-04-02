@@ -14,6 +14,14 @@ public class CommandDto {
   private AnimalId animalId;
   private Date timestamp;
 
+  public CommandDto(Command command, AnimalId animalId, Date timestamp) {
+    this.command = command;
+    this.animalId = animalId;
+    this.timestamp = timestamp;
+  }
+
+  public CommandDto() {}
+
   public Command getCommand() {
     return command;
   }
