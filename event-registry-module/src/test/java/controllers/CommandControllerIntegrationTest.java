@@ -16,15 +16,19 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 import zoo.ZooApp;
-import zoo.common.AnimalId;
-import zoo.common.Command;
+import zoo.common.*;
 import zoo.models.CommandDto;
+import zoo.persistence.EventLog;
+import zoo.persistence.EventLogRepository;
+import zoo.persistence.Zoo;
+import zoo.persistence.ZooRepository;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Date;
 
+import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,6 +55,12 @@ public class CommandControllerIntegrationTest {
   private WebApplicationContext webApplicationContext;
 
   @Autowired
+  private EventLogRepository eventLogRepository;
+
+  @Autowired
+  private ZooRepository zooRepository;
+
+  @Autowired
   void setConverters(HttpMessageConverter<?>[] converters) {
 
     this.mappingJackson2HttpMessageConverter = Arrays.asList(converters).stream().filter(
@@ -63,18 +73,46 @@ public class CommandControllerIntegrationTest {
   @Before
   public void setup() throws Exception {
     this.mockMvc = webAppContextSetup(webApplicationContext).build();
+
+    this.eventLogRepository.deleteAll();
+    this.zooRepository.deleteAll();
   }
 
   @Test
-  public void singleSuccessfulCommand() throws Exception {
+  public void successfulSingleCommand() throws Exception {
 
-    CommandDto command = new CommandDto(Command.Play, AnimalId.Elephants, new Date());
+    Date timestamp = new Date();
+    CommandDto command = new CommandDto(Command.Play, AnimalId.Elephants, timestamp);
     mockMvc.perform(post("/commands/")
         .content(this.json(Arrays.asList(command)))
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
         .andExpect(jsonPath("$.success", is(true)));
+
+    EventLog eventLog = this.eventLogRepository.findByOccurence(timestamp);
+    assertEquals(Event.Played, eventLog.getEvent());
+    assertEquals(AnimalId.Elephants, eventLog.getAnimalId());
+
+    Zoo zoo = this.zooRepository.findOne(AnimalId.Elephants);
+    assertEquals(FeelingOfSatiety.full, zoo.getFeelingOfSatiety());
+    assertEquals(Hygiene.tidy, zoo.getHygiene());
+    assertEquals(Mindstate.happy, zoo.getMindstate());
+  }
+
+  @Test
+  public void successfulCommandSequence() throws Exception {
+
+    mockMvc.perform(post("/commands/")
+          .content(this.json(Arrays.asList(
+            new CommandDto(Command.Play, AnimalId.Monkeys, new Date()),
+            new CommandDto(Command.Sadden, AnimalId.Monkeys, new Date()),
+            new CommandDto(Command.Sadden, AnimalId.Monkeys, new Date()
+            ))))
+          .contentType(contentType))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(contentType))
+          .andExpect(jsonPath("$.success", is(true)));
   }
 
   protected String json(Object o) throws IOException {
