@@ -11,6 +11,7 @@
 
     <modules>
         <module>event-registry-module</module>
+        <module>eventlog-module</module>
     </modules>
 
     <properties>
