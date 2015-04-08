@@ -17,4 +17,5 @@ public abstract class Aggregate {
   public String getId() {
     return id;
   }
+
 }

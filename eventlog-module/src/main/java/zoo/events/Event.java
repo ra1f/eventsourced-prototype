@@ -1,20 +1,17 @@
-package zoo.commands;
+package zoo.events;
 
 import java.util.Date;
 
 /**
- * Created by dueerkopra on 07.04.2015.
+ * Created by dueerkopra on 08.04.2015.
  */
-public abstract class Command {
+public abstract class Event {
 
   protected String animalId;
 
   protected Date timestamp;
 
-  public Command() {
-  }
-
-  public Command(String animalId, Date timestamp) {
+  public Event(String animalId, Date timestamp) {
     this.animalId = animalId;
     this.timestamp = timestamp;
   }
@@ -30,12 +27,12 @@ public abstract class Command {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof Buy)) return false;
+    if (!(o instanceof Bought)) return false;
 
-    Command command = (Command) o;
+    Event event = (Event) o;
 
-    if (animalId != null ? !animalId.equals(command.animalId) : command.animalId != null) return false;
-    if (timestamp != null ? !timestamp.equals(command.timestamp) : command.timestamp != null) return false;
+    if (animalId != null ? !animalId.equals(event.animalId) : event.animalId != null) return false;
+    if (timestamp != null ? !timestamp.equals(event.timestamp) : event.timestamp != null) return false;
 
     return true;
   }

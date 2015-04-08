@@ -1,12 +1,28 @@
 package zoo.aggregates;
 
 import zoo.commands.Buy;
+import zoo.commands.Digest;
 import zoo.events.Bought;
+import zoo.events.Digested;
+import zoo.events.Event;
+import zoo.exceptions.AnimalAlreadyBoughtException;
+import zoo.exceptions.AnimalNotExistingException;
+import zoo.exceptions.ZooException;
+import zoo.states.FeelingOfSatiety;
+
+import java.util.Arrays;
 
 /**
  * Created by dueerkopra on 07.04.2015.
  */
-public class Animal extends Aggregate implements CommandHandler<Buy, Bought> {
+public class Animal extends Aggregate {
+
+  private FeelingOfSatiety feelingOfSatiety;
+
+  public Animal(String id, FeelingOfSatiety feelingOfSatiety) {
+    super(id);
+    this.feelingOfSatiety = feelingOfSatiety;
+  }
 
   public Animal(String id) {
     super(id);
@@ -15,11 +31,46 @@ public class Animal extends Aggregate implements CommandHandler<Buy, Bought> {
   public Animal() {
   }
 
-  @Override
-  public Iterable<Bought> handleCommand(Buy command) {
-    if (id != null) {
-      throw new Exception();
-    }
-    return new Arrays.;
+  public CommandHandler<Buy, Event> asBuyCommandHandler() {
+    return new CommandHandler<Buy, Event>() {
+      @Override
+      public Iterable<Event> handleCommand(Buy command) throws ZooException {
+        if (id != null) {
+          throw new AnimalAlreadyBoughtException(command.getAnimalId());
+        }
+        return Arrays.asList(new Bought(command.getAnimalId(), command.getTimestamp()));
+      }
+    };
   }
+
+  public CommandHandler<Digest, Event> asDigestCommandhandler() {
+    return new CommandHandler<Digest, Event>() {
+      @Override
+      public Iterable<Event> handleCommand(Digest command) throws ZooException {
+        if (id == null) {
+          throw new AnimalNotExistingException(command.getAnimalId());
+        }
+        return Arrays.asList(new Digested(command.getAnimalId(), command.getTimestamp()));
+      }
+    };
+  }
+
+  public EventApplier<Bought> asBoughtEventApplier() {
+    return new EventApplier<Bought>() {
+      @Override
+      public Animal applyEvent(Bought event) {
+        return new Animal(event.getAnimalId());
+      }
+    };
+  }
+
+  public EventApplier<Digested> asDigestedEventApplier() {
+    return new EventApplier<Digested>() {
+      @Override
+      public Animal applyEvent(Digested event) {
+        return new Animal(event.getAnimalId(), feelingOfSatiety.worse());
+      }
+    };
+  }
+
 }
