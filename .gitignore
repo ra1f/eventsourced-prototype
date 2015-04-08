@@ -3,4 +3,6 @@ target/
 eventsourced-prototype.iml
 event-registry-module/target
 event-registry-module/event-registry-module.iml
+eventlog-module/target
+eventlog-module/event-registry-module.iml
 postgres/.vagrant

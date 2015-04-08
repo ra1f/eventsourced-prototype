@@ -2,6 +2,7 @@ package zoo.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import rx.Observable;
 import zoo.aggregates.Animal;
 import zoo.events.Event;
 import zoo.persistence.EventLog;
@@ -24,6 +25,9 @@ public class EventPublisher {
     eventLogRepository.save(events.stream().map(
         event -> new EventLog(event.getClass().getSimpleName(), event.getAnimalId(), event.getTimestamp())).
         collect(Collectors.toList()));
+
+    Observable<EventLog> observable = animal.publish(eventLogRepository);
+    observable.subscribe(new EventLogSubscriber(animal));
 
 
   }

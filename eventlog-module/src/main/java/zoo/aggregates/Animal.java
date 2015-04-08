@@ -11,6 +11,7 @@ import zoo.exceptions.ZooException;
 import zoo.states.FeelingOfSatiety;
 
 import java.util.Arrays;
+import java.util.Date;
 
 /**
  * Created by dueerkopra on 07.04.2015.
@@ -19,13 +20,13 @@ public class Animal extends Aggregate {
 
   private FeelingOfSatiety feelingOfSatiety;
 
-  public Animal(String id, FeelingOfSatiety feelingOfSatiety) {
-    super(id);
+  public Animal(String id, Date timestamp, FeelingOfSatiety feelingOfSatiety) {
+    super(id, timestamp);
     this.feelingOfSatiety = feelingOfSatiety;
   }
 
-  public Animal(String id) {
-    super(id);
+  public Animal(String id, Date timestamp) {
+    super(id, timestamp);
   }
 
   public Animal() {
@@ -59,7 +60,7 @@ public class Animal extends Aggregate {
     return new EventApplier<Bought>() {
       @Override
       public Animal applyEvent(Bought event) {
-        return new Animal(event.getAnimalId());
+        return new Animal(event.getAnimalId(), event.getTimestamp());
       }
     };
   }
@@ -68,7 +69,7 @@ public class Animal extends Aggregate {
     return new EventApplier<Digested>() {
       @Override
       public Animal applyEvent(Digested event) {
-        return new Animal(event.getAnimalId(), feelingOfSatiety.worse());
+        return new Animal(event.getAnimalId(), event.getTimestamp(), feelingOfSatiety.worse());
       }
     };
   }
