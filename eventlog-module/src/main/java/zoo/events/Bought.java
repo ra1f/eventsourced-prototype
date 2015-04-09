@@ -1,6 +1,5 @@
 package zoo.events;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -14,9 +13,6 @@ public class Bought extends Event {
 
   @Override
   public String toString() {
-    return "Bought{" +
-        "animalId='" + animalId + '\'' +
-        ", timestamp=" + new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(timestamp) +
-        '}';
+    return "Bought" + super.toString();
   }
 }

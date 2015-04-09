@@ -1,17 +1,18 @@
 package zoo.events;
 
+import java.util.Date;
+
 /**
  * Created by dueerkopra on 08.04.2015.
  */
-public class Fed {
+public class Fed extends Event {
 
-  private String animalId;
-
-  public Fed(String animalId) {
-    this.animalId = animalId;
+  public Fed(String animalId, Date timestamp) {
+    super(animalId, timestamp);
   }
 
-  public String getAnimalId() {
-    return animalId;
+  @Override
+  public String toString() {
+    return "Fed" + super.toString();
   }
 }

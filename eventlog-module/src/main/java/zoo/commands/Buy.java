@@ -1,6 +1,5 @@
 package zoo.commands;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -17,10 +16,7 @@ public class Buy extends Command {
 
   @Override
   public String toString() {
-    return "Buy{" +
-        "animalId='" + animalId + '\'' +
-        ", timestamp=" + new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(timestamp) +
-        '}';
+    return "Buy" + super.toString();
   }
 
 }

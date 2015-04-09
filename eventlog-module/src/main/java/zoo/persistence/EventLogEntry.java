@@ -9,7 +9,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name="eventlog")
-public class EventLog {
+public class EventLogEntry {
 
   @Id
   @GeneratedValue(strategy=GenerationType.AUTO)
@@ -25,9 +25,9 @@ public class EventLog {
   @Temporal(TemporalType.TIMESTAMP)
   private Date occurence;
 
-  protected EventLog() {}
+  protected EventLogEntry() {}
 
-  public EventLog(String event, String animalId, Date occurence) {
+  public EventLogEntry(String event, String animalId, Date occurence) {
     this.event = event;
     this.animalId = animalId;
     this.occurence = occurence;
@@ -52,13 +52,13 @@ public class EventLog {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof EventLog)) return false;
+    if (!(o instanceof EventLogEntry)) return false;
 
-    EventLog eventLog = (EventLog) o;
+    EventLogEntry eventLogEntry = (EventLogEntry) o;
 
-    if (animalId != eventLog.animalId) return false;
-    if (event != eventLog.event) return false;
-    if (occurence != null ? !occurence.equals(eventLog.occurence) : eventLog.occurence != null) return false;
+    if (animalId != eventLogEntry.animalId) return false;
+    if (event != eventLogEntry.event) return false;
+    if (occurence != null ? !occurence.equals(eventLogEntry.occurence) : eventLogEntry.occurence != null) return false;
 
     return true;
   }

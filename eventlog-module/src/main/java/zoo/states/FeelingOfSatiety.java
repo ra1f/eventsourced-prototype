@@ -7,19 +7,19 @@ public enum FeelingOfSatiety {
   full, hungry, starving, dead;
 
   public FeelingOfSatiety better() {
-    FeelingOfSatiety retVal;
-    if (this.equals(dead)) retVal = dead;
-    else if (this.equals(starving)) retVal = hungry;
-    else if (this.equals(hungry)) retVal = full;
-    else retVal = full;
-    return retVal;
+    FeelingOfSatiety satiety;
+    if (this.equals(dead)) satiety = dead;
+    else if (this.equals(starving)) satiety = hungry;
+    else if (this.equals(hungry)) satiety = full;
+    else satiety = full;
+    return satiety;
   }
 
   public FeelingOfSatiety worse() {
-    FeelingOfSatiety retVal;
-    if (this.equals(full)) retVal = hungry;
-    else if (this.equals(hungry)) retVal = starving;
-    else retVal = dead;
-    return retVal;
+    FeelingOfSatiety satiety;
+    if (this.equals(full)) satiety = hungry;
+    else if (this.equals(hungry)) satiety = starving;
+    else satiety = dead;
+    return satiety;
   }
 }

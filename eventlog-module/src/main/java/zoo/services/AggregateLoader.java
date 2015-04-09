@@ -1,14 +1,13 @@
 package zoo.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import zoo.aggregates.Animal;
 import zoo.events.Bought;
 import zoo.events.Digested;
+import zoo.events.Fed;
 import zoo.exceptions.AggregateLoadException;
-import zoo.persistence.EventLog;
-import zoo.persistence.EventLogRepository;
+import zoo.persistence.EventLogEntry;
 
 import java.util.Collection;
 import java.util.function.BiFunction;
@@ -16,30 +15,43 @@ import java.util.function.BiFunction;
 /**
  * Created by dueerkopra on 08.04.2015.
  */
-@Service
+@Component
 public class AggregateLoader {
 
   @Autowired
-  private EventLogRepository eventLogRepository;
+  private EventStore eventStore;
+  @Autowired
+  private AggregateRegistry aggregateRegistry;
+
+  private BiFunction<Animal, ? super EventLogEntry, Animal> reduceFromHistory = (animal, eventLogEntry) -> {
+    if (eventLogEntry.getEvent().equals(Bought.class.getSimpleName())) {
+      return animal.asBoughtEventApplier().applyEvent(new Bought(eventLogEntry.getAnimalId(), eventLogEntry.getOccurence()));
+    } else if (eventLogEntry.getEvent().equals(Fed.class.getSimpleName())) {
+      return animal.asFedEventApplier().applyEvent(new Fed(eventLogEntry.getAnimalId(), eventLogEntry.getOccurence()));
+    } else if (eventLogEntry.getEvent().equals(Digested.class.getSimpleName())) {
+      return animal.asDigestedEventApplier().applyEvent(new Digested(eventLogEntry.getAnimalId(), eventLogEntry.getOccurence()));
+    } else {
+      throw new RuntimeException(String.format("Event %s not handled", eventLogEntry));
+    }
+  };
 
   public Animal replayAnimalAggregate(String animalId) throws AggregateLoadException {
 
-    Collection<EventLog> events = eventLogRepository.findByAnimalId(animalId, new Sort(Sort.Direction.ASC, "occurence"));
-    if (events.isEmpty()) {
+    // Is there already a snapshot in memory?
+    Animal animal = (Animal) aggregateRegistry.find(animalId);
+    if (animal != null) {
+      return animal;
+    }
+
+    // Are there entries within the eventlog?
+    Collection<EventLogEntry> eventLogs = eventStore.find(animalId);
+    if (eventLogs.isEmpty()) {
       return new Animal();
     }
 
-    BiFunction<Animal, ? super EventLog, Animal> reduceFunction = (animal, event) -> {
-      if (event.getEvent().equals(Bought.class.getSimpleName())) {
-        return animal.asBoughtEventApplier().applyEvent(new Bought(event.getAnimalId(), event.getOccurence()));
-      } else if (event.getEvent().equals(Digested.class.getSimpleName())) {
-        return animal.asDigestedEventApplier().applyEvent(new Digested(event.getAnimalId(), event.getOccurence()));
-      } else {
-        throw new RuntimeException(String.format("Event %s not handled", event));
-      }};
-
+    // If so replay state;
     try {
-      return events.stream().reduce(new Animal(), reduceFunction, (z1, z2) -> z2);
+      return eventLogs.stream().reduce(new Animal(), reduceFromHistory, (z1, z2) -> z2);//TODO: try to parallelise here
     } catch (Exception e) {
       throw new AggregateLoadException(e);
     }

@@ -1,5 +1,6 @@
 package zoo.events;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -42,5 +43,13 @@ public abstract class Event {
     int result = animalId != null ? animalId.hashCode() : 0;
     result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "{" +
+        "animalId='" + animalId + '\'' +
+        ", timestamp=" + new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(timestamp) +
+        '}';
   }
 }

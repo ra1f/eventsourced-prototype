@@ -2,15 +2,18 @@ package zoo.aggregates;
 
 import zoo.commands.Buy;
 import zoo.commands.Digest;
+import zoo.commands.Feed;
 import zoo.events.Bought;
 import zoo.events.Digested;
 import zoo.events.Event;
-import zoo.exceptions.AnimalAlreadyBoughtException;
-import zoo.exceptions.AnimalNotExistingException;
+import zoo.events.Fed;
+import zoo.exceptions.AnimalAlreadyThereException;
+import zoo.exceptions.AnimalNotThereException;
 import zoo.exceptions.ZooException;
 import zoo.states.FeelingOfSatiety;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -25,21 +28,34 @@ public class Animal extends Aggregate {
     this.feelingOfSatiety = feelingOfSatiety;
   }
 
-  public Animal(String id, Date timestamp) {
-    super(id, timestamp);
+  public Animal() {
   }
 
-  public Animal() {
+  public FeelingOfSatiety getFeelingOfSatiety() {
+    return feelingOfSatiety;
   }
 
   public CommandHandler<Buy, Event> asBuyCommandHandler() {
     return new CommandHandler<Buy, Event>() {
       @Override
-      public Iterable<Event> handleCommand(Buy command) throws ZooException {
+      public Collection<Event> handleCommand(Buy command) throws ZooException {
         if (id != null) {
-          throw new AnimalAlreadyBoughtException(command.getAnimalId());
+          throw new AnimalAlreadyThereException(command.getAnimalId());
         }
         return Arrays.asList(new Bought(command.getAnimalId(), command.getTimestamp()));
+      }
+    };
+  }
+
+  public CommandHandler<Feed, Event> asFeedCommandHandler() {
+    return new CommandHandler<Feed, Event>() {
+
+      @Override
+      public Collection<Event> handleCommand(Feed command) throws ZooException {
+        if (id == null) {
+          throw new AnimalNotThereException(command.getAnimalId());
+        }
+        return Arrays.asList(new Fed(command.getAnimalId(), command.getTimestamp()));
       }
     };
   }
@@ -47,9 +63,9 @@ public class Animal extends Aggregate {
   public CommandHandler<Digest, Event> asDigestCommandhandler() {
     return new CommandHandler<Digest, Event>() {
       @Override
-      public Iterable<Event> handleCommand(Digest command) throws ZooException {
+      public Collection<Event> handleCommand(Digest command) throws ZooException {
         if (id == null) {
-          throw new AnimalNotExistingException(command.getAnimalId());
+          throw new AnimalNotThereException(command.getAnimalId());
         }
         return Arrays.asList(new Digested(command.getAnimalId(), command.getTimestamp()));
       }
@@ -60,7 +76,16 @@ public class Animal extends Aggregate {
     return new EventApplier<Bought>() {
       @Override
       public Animal applyEvent(Bought event) {
-        return new Animal(event.getAnimalId(), event.getTimestamp());
+        return new Animal(event.getAnimalId(), event.getTimestamp(), FeelingOfSatiety.full);
+      }
+    };
+  }
+
+  public EventApplier<Fed> asFedEventApplier() {
+    return new EventApplier<Fed>() {
+      @Override
+      public Animal applyEvent(Fed event) {
+        return new Animal(event.getAnimalId(), event.getTimestamp(), feelingOfSatiety.better());
       }
     };
   }
