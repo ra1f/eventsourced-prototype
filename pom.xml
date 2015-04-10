@@ -10,7 +10,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>event-registry-module</module>
         <module>eventlog-module</module>
     </modules>
 
