@@ -3,8 +3,7 @@ package zoo.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import zoo.aggregates.Animal;
-import zoo.commands.Buy;
-import zoo.commands.Feed;
+import zoo.commands.*;
 import zoo.events.Event;
 import zoo.exceptions.AggregateLoadException;
 import zoo.exceptions.ZooException;
@@ -29,9 +28,39 @@ public class AnimalService {
     publisher.publish(events, animal);
   }
 
+  public void sell(Sell sell) throws AggregateLoadException, ZooException {
+    throw new ZooException("Not implemented");
+  }
+
   public void feed(Feed feed) throws AggregateLoadException, ZooException {
     Animal animal = aggregateLoader.replayAnimalAggregate(feed.getAnimalId());
     Collection<Event> events = animal.asFeedCommandHandler().handleCommand(feed);
     publisher.publish(events, animal);
   }
+
+  public void digest(Digest digest) throws AggregateLoadException, ZooException {
+    Animal animal = aggregateLoader.replayAnimalAggregate(digest.getAnimalId());
+    Collection<Event> events = animal.asDigestCommandHandler().handleCommand(digest);
+    publisher.publish(events, animal);
+  }
+
+  public void play(Play play) throws AggregateLoadException, ZooException {
+    throw new ZooException("Not implemented");
+  }
+
+  public void sadden(Sadden sadden) throws AggregateLoadException, ZooException {
+    throw new ZooException("Not implemented");
+  }
+
+  public void cleanUp(CleanUp cleanUp) throws AggregateLoadException, ZooException {
+    throw new ZooException("Not implemented");
+  }
+
+  public void messUp(MessUp messUp) throws AggregateLoadException, ZooException {
+    throw new ZooException("Not implemented");
+  }
+
+
+
+
 }

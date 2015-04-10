@@ -17,8 +17,12 @@ public class AggregateRegistry {
     aggregateMap.put(aggregate.getId(), aggregate);
   }
 
-  public Aggregate find(String id) {
+  public Aggregate findSnapshot(String id) {
     return aggregateMap.get(id);
+  }
+
+  public void deleteAll() {
+    aggregateMap.clear();
   }
 
 }

@@ -3,12 +3,9 @@ package zoo.aggregates;
 import zoo.commands.Buy;
 import zoo.commands.Digest;
 import zoo.commands.Feed;
-import zoo.events.Bought;
-import zoo.events.Digested;
-import zoo.events.Event;
-import zoo.events.Fed;
+import zoo.events.*;
 import zoo.exceptions.AnimalAlreadyThereException;
-import zoo.exceptions.AnimalNotThereException;
+import zoo.exceptions.NoSuchAnimalException;
 import zoo.exceptions.ZooException;
 import zoo.states.FeelingOfSatiety;
 
@@ -21,25 +18,31 @@ import java.util.Date;
  */
 public class Animal extends Aggregate {
 
+  private Boolean existing = false;
   private FeelingOfSatiety feelingOfSatiety;
 
-  public Animal(String id, Date timestamp, FeelingOfSatiety feelingOfSatiety) {
-    super(id, timestamp);
-    this.feelingOfSatiety = feelingOfSatiety;
+  public Animal() {
   }
 
-  public Animal() {
+  private Animal(String id, Date timestamp, Boolean existing, FeelingOfSatiety feelingOfSatiety) {
+    super(id, timestamp);
+    this.existing = existing;
+    this.feelingOfSatiety = feelingOfSatiety;
   }
 
   public FeelingOfSatiety getFeelingOfSatiety() {
     return feelingOfSatiety;
   }
 
+  public Boolean isExisting() {
+    return existing;
+  }
+
   public CommandHandler<Buy, Event> asBuyCommandHandler() {
     return new CommandHandler<Buy, Event>() {
       @Override
       public Collection<Event> handleCommand(Buy command) throws ZooException {
-        if (id != null) {
+        if (existing) {
           throw new AnimalAlreadyThereException(command.getAnimalId());
         }
         return Arrays.asList(new Bought(command.getAnimalId(), command.getTimestamp()));
@@ -52,22 +55,26 @@ public class Animal extends Aggregate {
 
       @Override
       public Collection<Event> handleCommand(Feed command) throws ZooException {
-        if (id == null) {
-          throw new AnimalNotThereException(command.getAnimalId());
+        if (!existing) {
+          throw new NoSuchAnimalException(command.getAnimalId());
         }
         return Arrays.asList(new Fed(command.getAnimalId(), command.getTimestamp()));
       }
     };
   }
 
-  public CommandHandler<Digest, Event> asDigestCommandhandler() {
+  public CommandHandler<Digest, Event> asDigestCommandHandler() {
     return new CommandHandler<Digest, Event>() {
       @Override
       public Collection<Event> handleCommand(Digest command) throws ZooException {
-        if (id == null) {
-          throw new AnimalNotThereException(command.getAnimalId());
+        if (!existing) {
+          throw new NoSuchAnimalException(command.getAnimalId());
         }
-        return Arrays.asList(new Digested(command.getAnimalId(), command.getTimestamp()));
+        Event event = new Digested(command.getAnimalId(), command.getTimestamp());
+        if (feelingOfSatiety.isWorst()) {
+          event = new Died(command.getAnimalId(), command.getTimestamp());
+        }
+        return Arrays.asList(event);
       }
     };
   }
@@ -76,7 +83,7 @@ public class Animal extends Aggregate {
     return new EventApplier<Bought>() {
       @Override
       public Animal applyEvent(Bought event) {
-        return new Animal(event.getAnimalId(), event.getTimestamp(), FeelingOfSatiety.full);
+        return new Animal(event.getAnimalId(), event.getTimestamp(), true, FeelingOfSatiety.full);
       }
     };
   }
@@ -85,7 +92,7 @@ public class Animal extends Aggregate {
     return new EventApplier<Fed>() {
       @Override
       public Animal applyEvent(Fed event) {
-        return new Animal(event.getAnimalId(), event.getTimestamp(), feelingOfSatiety.better());
+        return new Animal(event.getAnimalId(), event.getTimestamp(), existing, feelingOfSatiety.better());
       }
     };
   }
@@ -94,7 +101,16 @@ public class Animal extends Aggregate {
     return new EventApplier<Digested>() {
       @Override
       public Animal applyEvent(Digested event) {
-        return new Animal(event.getAnimalId(), event.getTimestamp(), feelingOfSatiety.worse());
+        return new Animal(event.getAnimalId(), event.getTimestamp(), existing, feelingOfSatiety.worse());
+      }
+    };
+  }
+
+  public EventApplier<Died> asDiedEventApplier() {
+    return new EventApplier<Died>() {
+      @Override
+      public Animal applyEvent(Died event) {
+        return new Animal(event.getAnimalId(), event.getTimestamp(), false, feelingOfSatiety);
       }
     };
   }

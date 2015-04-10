@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import zoo.commands.Buy;
+import zoo.commands.Digest;
 import zoo.commands.Feed;
 import zoo.services.AnimalService;
 
@@ -43,6 +44,20 @@ public class AnimalLifecycleController {
       result.setSuccess(true);
     } catch (Exception e) {
       logger.error("Error in /feed", e);
+    }
+    return result;
+  }
+
+  @RequestMapping(value = "/digest", method=RequestMethod.POST)
+  public @ResponseBody CommandResult create(@RequestBody Digest digest) {
+
+    logger.info(digest.toString());
+    CommandResult result = new CommandResult();
+    try {
+      animalService.digest(digest);
+      result.setSuccess(true);
+    } catch (Exception e) {
+      logger.error("Error in /digest", e);
     }
     return result;
   }

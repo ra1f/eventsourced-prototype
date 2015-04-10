@@ -3,10 +3,7 @@ package zoo.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import zoo.aggregates.Animal;
-import zoo.events.Bought;
-import zoo.events.Digested;
-import zoo.events.Event;
-import zoo.events.Fed;
+import zoo.events.*;
 import zoo.persistence.EventLogEntry;
 
 import java.util.Collection;
@@ -28,6 +25,8 @@ public class EventPublisher {
   private BiFunction<Animal, ? super Event, Animal> reduceNewEvents = (animal, event) -> {
     if (event instanceof Bought) {
       return animal.asBoughtEventApplier().applyEvent((Bought)event);
+    } else if (event instanceof Died) {
+      return animal.asDiedEventApplier().applyEvent((Died)event);
     } else if (event instanceof Fed) {
       return animal.asFedEventApplier().applyEvent((Fed)event);
     } else if (event instanceof Digested) {
