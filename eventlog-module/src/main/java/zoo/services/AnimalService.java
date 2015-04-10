@@ -20,12 +20,12 @@ public class AnimalService {
   private AggregateLoader aggregateLoader;
 
   @Autowired
-  private EventPublisher publisher;
+  private EventStore eventStore;
 
   public void buy(Buy buy) throws AggregateLoadException, ZooException {
     Animal animal = aggregateLoader.replayAnimalAggregate(buy.getAnimalId());
     Collection<Event> events = animal.asBuyCommandHandler().handleCommand(buy);
-    publisher.publish(events, animal);
+    eventStore.saveEvents(events);
   }
 
   public void sell(Sell sell) throws AggregateLoadException, ZooException {
@@ -35,13 +35,13 @@ public class AnimalService {
   public void feed(Feed feed) throws AggregateLoadException, ZooException {
     Animal animal = aggregateLoader.replayAnimalAggregate(feed.getAnimalId());
     Collection<Event> events = animal.asFeedCommandHandler().handleCommand(feed);
-    publisher.publish(events, animal);
+    eventStore.saveEvents(events);
   }
 
   public void digest(Digest digest) throws AggregateLoadException, ZooException {
     Animal animal = aggregateLoader.replayAnimalAggregate(digest.getAnimalId());
     Collection<Event> events = animal.asDigestCommandHandler().handleCommand(digest);
-    publisher.publish(events, animal);
+    eventStore.saveEvents(events);
   }
 
   public void play(Play play) throws AggregateLoadException, ZooException {

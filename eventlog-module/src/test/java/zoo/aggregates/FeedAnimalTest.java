@@ -15,7 +15,6 @@ import zoo.exceptions.NoSuchAnimalException;
 import zoo.persistence.EventLogEntry;
 import zoo.persistence.EventLogRepository;
 import zoo.services.AggregateLoader;
-import zoo.services.AggregateRegistry;
 import zoo.services.AnimalService;
 import zoo.states.FeelingOfSatiety;
 
@@ -36,15 +35,11 @@ public class FeedAnimalTest {
   private AnimalService animalService;
 
   @Autowired
-  private AggregateRegistry aggregateRegistry;
-
-  @Autowired
   private EventLogRepository eventLogRepository;
 
   @Before
   public void setup() throws Exception {
     eventLogRepository.deleteAll();
-    aggregateRegistry.deleteAll();
   }
 
   @Test
@@ -64,14 +59,14 @@ public class FeedAnimalTest {
 
     Date newTimestamp = new Date(oldTimestamp.getTime() + 1);
     animalService.feed(new Feed(elephant1.getId(), newTimestamp));
-    Animal snapshot = (Animal)aggregateRegistry.findSnapshot(elephant1.getId());
+    Animal newState = aggregateLoader.replayAnimalAggregate(elephant1.getId());
 
-    Assert.assertEquals("Elephant#1", snapshot.getId());
-    Assert.assertEquals(newTimestamp, snapshot.getTimestamp());
-    Assert.assertTrue(snapshot.isExisting());
+    Assert.assertEquals("Elephant#1", newState.getId());
+    Assert.assertEquals(newTimestamp, newState.getTimestamp());
+    Assert.assertTrue(newState.isExisting());
 
     //QED: Animal still full (not fuller than full)
-    Assert.assertEquals(FeelingOfSatiety.full, snapshot.getFeelingOfSatiety());
+    Assert.assertEquals(FeelingOfSatiety.full, newState.getFeelingOfSatiety());
   }
 
   @Test
@@ -93,14 +88,14 @@ public class FeedAnimalTest {
 
     Date thirdTimestamp = new Date(firstTimestamp.getTime() + 1);
     animalService.feed(new Feed(elephant1.getId(), thirdTimestamp));
-    Animal snapshot = (Animal)aggregateRegistry.findSnapshot(elephant1.getId());
+    Animal newState = aggregateLoader.replayAnimalAggregate(elephant1.getId());
 
-    Assert.assertEquals("Elephant#1", snapshot.getId());
-    Assert.assertEquals(thirdTimestamp, snapshot.getTimestamp());
-    Assert.assertTrue(snapshot.isExisting());
+    Assert.assertEquals("Elephant#1", newState.getId());
+    Assert.assertEquals(thirdTimestamp, newState.getTimestamp());
+    Assert.assertTrue(newState.isExisting());
 
     //QED: Animal full again because it was being fed
-    Assert.assertEquals(FeelingOfSatiety.full, snapshot.getFeelingOfSatiety());
+    Assert.assertEquals(FeelingOfSatiety.full, newState.getFeelingOfSatiety());
   }
 
   @Test
@@ -154,14 +149,14 @@ public class FeedAnimalTest {
     Date thirdTimestamp = new Date(secondTimestamp.getTime() + 1);
     animalService.feed(new Feed(leopard1.getId(), thirdTimestamp));
 
-    Animal snapshot = (Animal)aggregateRegistry.findSnapshot(leopard1.getId());
+    Animal newState = aggregateLoader.replayAnimalAggregate(leopard1.getId());
 
-    Assert.assertEquals("Leopard#1", snapshot.getId());
-    Assert.assertEquals(thirdTimestamp, snapshot.getTimestamp());
-    Assert.assertTrue(snapshot.isExisting());
+    Assert.assertEquals("Leopard#1", newState.getId());
+    Assert.assertEquals(thirdTimestamp, newState.getTimestamp());
+    Assert.assertTrue(newState.isExisting());
 
     //QED: Animal still hungry again it was being fed when it was starving before.
-    Assert.assertEquals(FeelingOfSatiety.hungry, snapshot.getFeelingOfSatiety());
+    Assert.assertEquals(FeelingOfSatiety.hungry, newState.getFeelingOfSatiety());
 
   }
 

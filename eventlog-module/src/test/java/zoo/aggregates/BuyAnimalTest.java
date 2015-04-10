@@ -16,8 +16,7 @@ import zoo.exceptions.AnimalAlreadyThereException;
 import zoo.persistence.EventLogEntry;
 import zoo.persistence.EventLogRepository;
 import zoo.services.AggregateLoader;
-import zoo.services.AggregateRegistry;
-import zoo.services.EventPublisher;
+import zoo.services.EventStore;
 import zoo.states.FeelingOfSatiety;
 
 import java.util.Collection;
@@ -35,10 +34,7 @@ public class BuyAnimalTest {
   private AggregateLoader aggregateLoader;
 
   @Autowired
-  private EventPublisher publisher;
-
-  @Autowired
-  private AggregateRegistry aggregateRegistry;
+  private EventStore eventStore;
 
   @Autowired
   private EventLogRepository eventLogRepository;
@@ -46,7 +42,6 @@ public class BuyAnimalTest {
   @Before
   public void setup() throws Exception {
     eventLogRepository.deleteAll();
-    aggregateRegistry.deleteAll();
   }
 
   @Test
@@ -54,8 +49,6 @@ public class BuyAnimalTest {
 
     Date date = new Date();
     Buy buy = new Buy("Lion#1", date);
-
-    Assert.assertNull(aggregateRegistry.findSnapshot("Lion#1"));
 
     Animal animal = aggregateLoader.replayAnimalAggregate(buy.getAnimalId());
 
@@ -65,14 +58,14 @@ public class BuyAnimalTest {
     Assert.assertNull(animal.getFeelingOfSatiety());
 
     Collection<Event> events = animal.asBuyCommandHandler().handleCommand(buy);
-    publisher.publish(events, animal);
+    eventStore.saveEvents(events);
 
-    Animal snapshot = (Animal)aggregateRegistry.findSnapshot("Lion#1");
+    Animal newState = aggregateLoader.replayAnimalAggregate("Lion#1");
 
-    Assert.assertEquals("Lion#1", snapshot.getId());
-    Assert.assertEquals(date, snapshot.getTimestamp());
-    Assert.assertTrue(snapshot.isExisting());
-    Assert.assertEquals(FeelingOfSatiety.full, snapshot.getFeelingOfSatiety());
+    Assert.assertEquals("Lion#1", newState.getId());
+    Assert.assertEquals(date, newState.getTimestamp());
+    Assert.assertTrue(newState.isExisting());
+    Assert.assertEquals(FeelingOfSatiety.full, newState.getFeelingOfSatiety());
 
     Collection<EventLogEntry> eventLogs =
         eventLogRepository.findByAnimalId("Lion#1", new Sort(Sort.Direction.ASC, "occurence"));

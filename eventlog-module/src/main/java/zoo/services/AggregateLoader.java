@@ -21,8 +21,6 @@ public class AggregateLoader {
 
   @Autowired
   private EventStore eventStore;
-  @Autowired
-  private AggregateRegistry aggregateRegistry;
 
   private BiFunction<Animal, ? super EventLogEntry, Animal> reduceFromHistory = (animal, eventLogEntry) -> {
     if (eventLogEntry.getEvent().equals(Bought.class.getSimpleName())) {
@@ -40,15 +38,10 @@ public class AggregateLoader {
 
   public Animal replayAnimalAggregate(String animalId) throws AggregateLoadException {
 
-    // Is there already a snapshot in memory?
-    Animal animal = (Animal) aggregateRegistry.findSnapshot(animalId);
-    if (animal != null) {
-      return animal;
-    }
-
     // Are there entries within the eventlog?
     Collection<EventLogEntry> eventLogs = eventStore.find(animalId);
     if (eventLogs.isEmpty()) {
+      // If not emit his as a starting point
       return new Animal();
     }
 
