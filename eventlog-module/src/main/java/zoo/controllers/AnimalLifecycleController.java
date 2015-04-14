@@ -20,7 +20,7 @@ public class AnimalLifecycleController {
 
   private static final Logger logger = LoggerFactory.getLogger(AnimalLifecycleController.class);
 
-  @RequestMapping(value = "/buy", method=RequestMethod.POST)
+  @RequestMapping(value = "/buy", method=RequestMethod.PUT)
   public @ResponseBody CommandResult create(@RequestBody Buy buy) {
 
     logger.info(buy.toString());
@@ -34,7 +34,7 @@ public class AnimalLifecycleController {
     return result;
   }
 
-  @RequestMapping(value = "/feed", method=RequestMethod.POST)
+  @RequestMapping(value = "/feed", method=RequestMethod.PUT)
   public @ResponseBody CommandResult create(@RequestBody Feed feed) {
 
     logger.info(feed.toString());
@@ -48,7 +48,7 @@ public class AnimalLifecycleController {
     return result;
   }
 
-  @RequestMapping(value = "/digest", method=RequestMethod.POST)
+  @RequestMapping(value = "/digest", method=RequestMethod.PUT)
   public @ResponseBody CommandResult create(@RequestBody Digest digest) {
 
     logger.info(digest.toString());

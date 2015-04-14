@@ -28,7 +28,7 @@ import java.util.Date;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = ZooEventLogApp.class)
 @ActiveProfiles(profiles = "unittest")
-public class BuyAnimalTest {
+public class BuyAnimalAggregateTest {
 
   @Autowired
   private AggregateLoader aggregateLoader;
@@ -50,17 +50,17 @@ public class BuyAnimalTest {
     Date date = new Date();
     Buy buy = new Buy("Lion#1", date);
 
-    Animal animal = aggregateLoader.replayAnimalAggregate(buy.getAnimalId());
+    AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate(buy.getAnimalId());
 
-    Assert.assertNull(animal.getId());
-    Assert.assertNull(animal.getTimestamp());
-    Assert.assertFalse(animal.isExisting());
-    Assert.assertNull(animal.getFeelingOfSatiety());
+    Assert.assertNull(animalAggregate.getId());
+    Assert.assertNull(animalAggregate.getTimestamp());
+    Assert.assertFalse(animalAggregate.isExisting());
+    Assert.assertNull(animalAggregate.getFeelingOfSatiety());
 
-    Collection<Event> events = animal.asBuyCommandHandler().handleCommand(buy);
+    Collection<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
     eventStore.saveEvents(events);
 
-    Animal newState = aggregateLoader.replayAnimalAggregate("Lion#1");
+    AnimalAggregate newState = aggregateLoader.replayAnimalAggregate("Lion#1");
 
     Assert.assertEquals("Lion#1", newState.getId());
     Assert.assertEquals(date, newState.getTimestamp());
@@ -85,11 +85,11 @@ public class BuyAnimalTest {
     Date oldDate = new Date();
     eventLogRepository.save(new EventLogEntry("Bought", "Elephant#1", oldDate));
 
-    Animal animal = aggregateLoader.replayAnimalAggregate("Elephant#1");
+    AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate("Elephant#1");
 
     try {
       Buy buy = new Buy("Elephant#1", new Date(oldDate.getTime() + 1));
-      animal.asBuyCommandHandler().handleCommand(buy);
+      animalAggregate.asBuyCommandHandler().handleCommand(buy);
       Assert.fail(String.format("Expected exception: %s", AnimalAlreadyThereException.class));
     } catch (AnimalAlreadyThereException e) {
       Assert.assertEquals(e.getMessage(), "Elephant#1");

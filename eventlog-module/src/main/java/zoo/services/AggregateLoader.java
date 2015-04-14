@@ -2,7 +2,7 @@ package zoo.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import zoo.aggregates.Animal;
+import zoo.aggregates.AnimalAggregate;
 import zoo.events.Bought;
 import zoo.events.Died;
 import zoo.events.Digested;
@@ -22,7 +22,7 @@ public class AggregateLoader {
   @Autowired
   private EventStore eventStore;
 
-  private BiFunction<Animal, ? super EventLogEntry, Animal> reduceFromHistory = (animal, eventLogEntry) -> {
+  private BiFunction<AnimalAggregate, ? super EventLogEntry, AnimalAggregate> reduceFromHistory = (animal, eventLogEntry) -> {
     if (eventLogEntry.getEvent().equals(Bought.class.getSimpleName())) {
       return animal.asBoughtEventApplier().applyEvent(new Bought(eventLogEntry.getAnimalId(), eventLogEntry.getOccurence()));
     } if (eventLogEntry.getEvent().equals(Died.class.getSimpleName())) {
@@ -36,18 +36,18 @@ public class AggregateLoader {
     }
   };
 
-  public Animal replayAnimalAggregate(String animalId) throws AggregateLoadException {
+  public AnimalAggregate replayAnimalAggregate(String animalId) throws AggregateLoadException {
 
     // Are there entries within the eventlog?
     Collection<EventLogEntry> eventLogs = eventStore.find(animalId);
     if (eventLogs.isEmpty()) {
       // If not emit his as a starting point
-      return new Animal();
+      return new AnimalAggregate();
     }
 
     // If so replay state;
     try {
-      return eventLogs.stream().reduce(new Animal(), reduceFromHistory, (z1, z2) -> z2);//TODO: try to parallelise here
+      return eventLogs.stream().reduce(new AnimalAggregate(), reduceFromHistory, (z1, z2) -> z2);//TODO: try to parallelise here
     } catch (Exception e) {
       throw new AggregateLoadException(e);
     }

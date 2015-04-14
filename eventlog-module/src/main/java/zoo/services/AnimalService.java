@@ -2,7 +2,7 @@ package zoo.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import zoo.aggregates.Animal;
+import zoo.aggregates.AnimalAggregate;
 import zoo.commands.*;
 import zoo.events.Event;
 import zoo.exceptions.AggregateLoadException;
@@ -23,8 +23,8 @@ public class AnimalService {
   private EventStore eventStore;
 
   public void buy(Buy buy) throws AggregateLoadException, ZooException {
-    Animal animal = aggregateLoader.replayAnimalAggregate(buy.getAnimalId());
-    Collection<Event> events = animal.asBuyCommandHandler().handleCommand(buy);
+    AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate(buy.getAnimalId());
+    Collection<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
     eventStore.saveEvents(events);
   }
 
@@ -33,14 +33,14 @@ public class AnimalService {
   }
 
   public void feed(Feed feed) throws AggregateLoadException, ZooException {
-    Animal animal = aggregateLoader.replayAnimalAggregate(feed.getAnimalId());
-    Collection<Event> events = animal.asFeedCommandHandler().handleCommand(feed);
+    AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate(feed.getAnimalId());
+    Collection<Event> events = animalAggregate.asFeedCommandHandler().handleCommand(feed);
     eventStore.saveEvents(events);
   }
 
   public void digest(Digest digest) throws AggregateLoadException, ZooException {
-    Animal animal = aggregateLoader.replayAnimalAggregate(digest.getAnimalId());
-    Collection<Event> events = animal.asDigestCommandHandler().handleCommand(digest);
+    AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate(digest.getAnimalId());
+    Collection<Event> events = animalAggregate.asDigestCommandHandler().handleCommand(digest);
     eventStore.saveEvents(events);
   }
 

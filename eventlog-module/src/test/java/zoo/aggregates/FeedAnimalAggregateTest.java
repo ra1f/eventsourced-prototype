@@ -26,7 +26,7 @@ import java.util.Date;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = ZooEventLogApp.class)
 @ActiveProfiles(profiles = "unittest")
-public class FeedAnimalTest {
+public class FeedAnimalAggregateTest {
 
   @Autowired
   private AggregateLoader aggregateLoader;
@@ -48,7 +48,7 @@ public class FeedAnimalTest {
     Date oldTimestamp = new Date();
     eventLogRepository.save(new EventLogEntry("Bought", "Elephant#1", oldTimestamp));
 
-    Animal elephant1 = aggregateLoader.replayAnimalAggregate("Elephant#1");
+    AnimalAggregate elephant1 = aggregateLoader.replayAnimalAggregate("Elephant#1");
 
     Assert.assertEquals("Elephant#1", elephant1.getId());
     Assert.assertEquals(oldTimestamp, elephant1.getTimestamp());
@@ -59,7 +59,7 @@ public class FeedAnimalTest {
 
     Date newTimestamp = new Date(oldTimestamp.getTime() + 1);
     animalService.feed(new Feed(elephant1.getId(), newTimestamp));
-    Animal newState = aggregateLoader.replayAnimalAggregate(elephant1.getId());
+    AnimalAggregate newState = aggregateLoader.replayAnimalAggregate(elephant1.getId());
 
     Assert.assertEquals("Elephant#1", newState.getId());
     Assert.assertEquals(newTimestamp, newState.getTimestamp());
@@ -77,7 +77,7 @@ public class FeedAnimalTest {
     eventLogRepository.save(new EventLogEntry("Bought", "Elephant#1", firstTimestamp));
     eventLogRepository.save(new EventLogEntry("Digested", "Elephant#1", secondTimestamp));
 
-    Animal elephant1 = aggregateLoader.replayAnimalAggregate("Elephant#1");
+    AnimalAggregate elephant1 = aggregateLoader.replayAnimalAggregate("Elephant#1");
 
     Assert.assertEquals("Elephant#1", elephant1.getId());
     Assert.assertEquals(secondTimestamp, elephant1.getTimestamp());
@@ -88,7 +88,7 @@ public class FeedAnimalTest {
 
     Date thirdTimestamp = new Date(firstTimestamp.getTime() + 1);
     animalService.feed(new Feed(elephant1.getId(), thirdTimestamp));
-    Animal newState = aggregateLoader.replayAnimalAggregate(elephant1.getId());
+    AnimalAggregate newState = aggregateLoader.replayAnimalAggregate(elephant1.getId());
 
     Assert.assertEquals("Elephant#1", newState.getId());
     Assert.assertEquals(thirdTimestamp, newState.getTimestamp());
@@ -108,7 +108,7 @@ public class FeedAnimalTest {
     eventLogRepository.save(new EventLogEntry("Digested", "Elephant#1", new Date(firstTimestamp.getTime() + 2)));
     eventLogRepository.save(new EventLogEntry("Died", "Elephant#1", secondTimestamp));
 
-    Animal elephant1 = aggregateLoader.replayAnimalAggregate("Elephant#1");
+    AnimalAggregate elephant1 = aggregateLoader.replayAnimalAggregate("Elephant#1");
 
     Assert.assertEquals("Elephant#1", elephant1.getId());
     Assert.assertEquals(secondTimestamp, elephant1.getTimestamp());
@@ -136,7 +136,7 @@ public class FeedAnimalTest {
     eventLogRepository.save(new EventLogEntry("Digested", "Leopard#1", new Date(firstTimestamp.getTime() + 1)));
     eventLogRepository.save(new EventLogEntry("Digested", "Leopard#1", secondTimestamp));
 
-    Animal leopard1 = aggregateLoader.replayAnimalAggregate("Leopard#1");
+    AnimalAggregate leopard1 = aggregateLoader.replayAnimalAggregate("Leopard#1");
 
     Assert.assertEquals("Leopard#1", leopard1.getId());
     Assert.assertEquals(secondTimestamp, leopard1.getTimestamp());
@@ -149,7 +149,7 @@ public class FeedAnimalTest {
     Date thirdTimestamp = new Date(secondTimestamp.getTime() + 1);
     animalService.feed(new Feed(leopard1.getId(), thirdTimestamp));
 
-    Animal newState = aggregateLoader.replayAnimalAggregate(leopard1.getId());
+    AnimalAggregate newState = aggregateLoader.replayAnimalAggregate(leopard1.getId());
 
     Assert.assertEquals("Leopard#1", newState.getId());
     Assert.assertEquals(thirdTimestamp, newState.getTimestamp());

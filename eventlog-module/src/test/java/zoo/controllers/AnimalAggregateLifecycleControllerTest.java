@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @WebAppConfiguration
 @IntegrationTest("server.port:0")
 @ActiveProfiles(profiles = "unittest")
-public class AnimalLifecycleControllerTest {
+public class AnimalAggregateLifecycleControllerTest {
 
   private MediaType contentType = new MediaType(MediaType.APPLICATION_JSON.getType(),
       MediaType.APPLICATION_JSON.getSubtype(),

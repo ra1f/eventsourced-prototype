@@ -8,6 +8,8 @@ import zoo.exceptions.AnimalAlreadyThereException;
 import zoo.exceptions.NoSuchAnimalException;
 import zoo.exceptions.ZooException;
 import zoo.states.FeelingOfSatiety;
+import zoo.states.Hygiene;
+import zoo.states.Mindstate;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,22 +18,39 @@ import java.util.Date;
 /**
  * Created by dueerkopra on 07.04.2015.
  */
-public class Animal extends Aggregate {
+public class AnimalAggregate extends Aggregate {
 
   private Boolean existing = false;
   private FeelingOfSatiety feelingOfSatiety;
+  private Mindstate mindstate;
+  private Hygiene hygiene;
 
-  public Animal() {
+  public AnimalAggregate() {
   }
 
-  private Animal(String id, Date timestamp, Boolean existing, FeelingOfSatiety feelingOfSatiety) {
+  private AnimalAggregate(String id,
+                          Date timestamp,
+                          Boolean existing,
+                          FeelingOfSatiety feelingOfSatiety,
+                          Mindstate mindstate,
+                          Hygiene hygiene) {
     super(id, timestamp);
     this.existing = existing;
     this.feelingOfSatiety = feelingOfSatiety;
+    this.mindstate = mindstate;
+    this.hygiene = hygiene;
   }
 
   public FeelingOfSatiety getFeelingOfSatiety() {
     return feelingOfSatiety;
+  }
+
+  public Mindstate getMindstate() {
+    return mindstate;
+  }
+
+  public Hygiene getHygiene() {
+    return hygiene;
   }
 
   public Boolean isExisting() {
@@ -82,8 +101,13 @@ public class Animal extends Aggregate {
   public EventApplier<Bought> asBoughtEventApplier() {
     return new EventApplier<Bought>() {
       @Override
-      public Animal applyEvent(Bought event) {
-        return new Animal(event.getAnimalId(), event.getTimestamp(), true, FeelingOfSatiety.full);
+      public AnimalAggregate applyEvent(Bought event) {
+        return new AnimalAggregate(event.getAnimalId(),
+            event.getTimestamp(),
+            true,
+            FeelingOfSatiety.full,
+            Mindstate.happy,
+            Hygiene.tidy);
       }
     };
   }
@@ -91,8 +115,13 @@ public class Animal extends Aggregate {
   public EventApplier<Fed> asFedEventApplier() {
     return new EventApplier<Fed>() {
       @Override
-      public Animal applyEvent(Fed event) {
-        return new Animal(event.getAnimalId(), event.getTimestamp(), existing, feelingOfSatiety.better());
+      public AnimalAggregate applyEvent(Fed event) {
+        return new AnimalAggregate(event.getAnimalId(),
+            event.getTimestamp(),
+            existing,
+            feelingOfSatiety.better(),
+            mindstate,
+            hygiene);
       }
     };
   }
@@ -100,8 +129,13 @@ public class Animal extends Aggregate {
   public EventApplier<Digested> asDigestedEventApplier() {
     return new EventApplier<Digested>() {
       @Override
-      public Animal applyEvent(Digested event) {
-        return new Animal(event.getAnimalId(), event.getTimestamp(), existing, feelingOfSatiety.worse());
+      public AnimalAggregate applyEvent(Digested event) {
+        return new AnimalAggregate(event.getAnimalId(),
+            event.getTimestamp(),
+            existing,
+            feelingOfSatiety.worse(),
+            mindstate,
+            hygiene);
       }
     };
   }
@@ -109,8 +143,13 @@ public class Animal extends Aggregate {
   public EventApplier<Died> asDiedEventApplier() {
     return new EventApplier<Died>() {
       @Override
-      public Animal applyEvent(Died event) {
-        return new Animal(event.getAnimalId(), event.getTimestamp(), false, feelingOfSatiety);
+      public AnimalAggregate applyEvent(Died event) {
+        return new AnimalAggregate(event.getAnimalId(),
+            event.getTimestamp(),
+            false,
+            feelingOfSatiety,
+            mindstate,
+            hygiene);
       }
     };
   }
