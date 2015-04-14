@@ -6,10 +6,11 @@ import rx.subjects.PublishSubject;
 
 /**
  * Created by dueerkopra on 13.04.2015.
+ *
+ *
+ * Experimental stuff
  */
 public class MoreObservableTests {
-
-
 
   public static void main(String[] args) throws Exception {
 

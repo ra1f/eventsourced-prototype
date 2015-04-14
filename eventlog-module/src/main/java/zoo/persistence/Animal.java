@@ -17,7 +17,6 @@ public class Animal {
 
   @Id
   @Column(name="animal_id")
-  @Enumerated(EnumType.STRING)
   private String animalId;
 
   @Column(name = "last_occurence")
@@ -41,21 +40,27 @@ public class Animal {
   private Integer version;
 
   /**
-   * Convinience constructor
+   * Convenience constructor
    * @param animalId
+   * @param lastOccurence
    * @param feelingOfSatiety
    * @param mindstate
    * @param hygiene
    */
-  public Animal(String animalId, FeelingOfSatiety feelingOfSatiety, Mindstate mindstate, Hygiene hygiene) {
+  public Animal(String animalId,
+                Date lastOccurence,
+                FeelingOfSatiety feelingOfSatiety,
+                Mindstate mindstate,
+                Hygiene hygiene) {
     this.animalId = animalId;
+    this.lastOccurence = lastOccurence;
     this.feelingOfSatiety = feelingOfSatiety;
     this.mindstate = mindstate;
     this.hygiene = hygiene;
   }
 
   /**
-   * Copy contructor
+   * Copy constructor
    * @param animalId
    * @param lastOccurence
    * @param feelingOfSatiety
@@ -159,9 +164,9 @@ public class Animal {
   @Override
   public String toString() {
     return String.format(
-        "Zoo[animalId='%s', lastOccurence='%s', feelingOfSatiety='%s', mindstate='%s', hygiene='%s', version='%d']",
+        "Animal[animalId='%s', lastOccurence='%s', feelingOfSatiety='%s', mindstate='%s', hygiene='%s', version='%d']",
         animalId,
-        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(lastOccurence),
+        lastOccurence == null? null: new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(lastOccurence),
         feelingOfSatiety,
         mindstate,
         hygiene,

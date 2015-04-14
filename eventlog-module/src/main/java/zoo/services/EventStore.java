@@ -32,11 +32,11 @@ public class EventStore {
     eventLogRepository.save(eventLogs);
   }
 
-  public void saveEvents(Collection<Event> events) {
+  public void saveEvents(String id, Collection<Event> events) {
     save(events.stream().map(
         event -> new EventLogEntry(event.getClass().getSimpleName(), event.getAnimalId(), event.getTimestamp())).
         collect(Collectors.toList()));
-    //publishSubject.onNext();
+    publishSubject.onNext(id);
   }
 
   public Collection<EventLogEntry> find(String animalId) {

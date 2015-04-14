@@ -58,7 +58,7 @@ public class BuyAnimalAggregateTest {
     Assert.assertNull(animalAggregate.getFeelingOfSatiety());
 
     Collection<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
-    eventStore.saveEvents(events);
+    eventStore.saveEvents(buy.getAnimalId(), events);
 
     AnimalAggregate newState = aggregateLoader.replayAnimalAggregate("Lion#1");
 

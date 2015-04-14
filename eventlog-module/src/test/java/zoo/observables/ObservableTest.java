@@ -12,6 +12,9 @@ import rx.schedulers.Schedulers;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Experimental stuff
+ */
 @RunWith(JUnit4.class)
 public class ObservableTest {
 
@@ -24,9 +27,7 @@ public class ObservableTest {
         .observeOn(Schedulers.newThread())
         .subscribe(n -> System.out.println(n));
 
-    Thread.sleep(30000);
+    Thread.sleep(5000);
 
   }
-
-
 }

@@ -3,11 +3,13 @@ package zoo.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
+import rx.Subscription;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import zoo.persistence.AnimalRepository;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 
 /**
@@ -25,15 +27,17 @@ public class ViewUpdaterService implements Action1<String> {
   @Autowired
   private AnimalRepository animalRepository;
 
+  private Subscription subscription;
+
   private PublishSubject<String> publishSubject = PublishSubject.create();
   // TODO: replace newThread by ThreadPool Executor
   private Observable<String> observable = publishSubject.observeOn(Schedulers.newThread());
 
   private HashMap<String, EventUpdateAdapter> adapterRegistry = new HashMap(11);
 
-  public ViewUpdaterService() {
-
-    eventStore.subscribe(this);
+  @PostConstruct
+  public void init() {
+    subscription = eventStore.subscribe(this);
   }
 
   @Override

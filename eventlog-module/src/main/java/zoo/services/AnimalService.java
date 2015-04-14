@@ -25,7 +25,7 @@ public class AnimalService {
   public void buy(Buy buy) throws AggregateLoadException, ZooException {
     AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate(buy.getAnimalId());
     Collection<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
-    eventStore.saveEvents(events);
+    eventStore.saveEvents(buy.getAnimalId(), events);
   }
 
   public void sell(Sell sell) throws AggregateLoadException, ZooException {
@@ -35,13 +35,13 @@ public class AnimalService {
   public void feed(Feed feed) throws AggregateLoadException, ZooException {
     AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate(feed.getAnimalId());
     Collection<Event> events = animalAggregate.asFeedCommandHandler().handleCommand(feed);
-    eventStore.saveEvents(events);
+    eventStore.saveEvents(feed.getAnimalId(), events);
   }
 
   public void digest(Digest digest) throws AggregateLoadException, ZooException {
     AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate(digest.getAnimalId());
     Collection<Event> events = animalAggregate.asDigestCommandHandler().handleCommand(digest);
-    eventStore.saveEvents(events);
+    eventStore.saveEvents(digest.getAnimalId(), events);
   }
 
   public void play(Play play) throws AggregateLoadException, ZooException {

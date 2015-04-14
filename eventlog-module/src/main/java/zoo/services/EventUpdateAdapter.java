@@ -44,6 +44,7 @@ public class EventUpdateAdapter implements Action1<String> {
 
   private Animal map(AnimalAggregate aggregate) {
     return new Animal(aggregate.getId(),
+        aggregate.getTimestamp(),
         aggregate.getFeelingOfSatiety(),
         aggregate.getMindstate(),
         aggregate.getHygiene()

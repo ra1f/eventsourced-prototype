@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.Date;
 
 import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -78,7 +78,7 @@ public class AnimalAggregateLifecycleControllerTest {
 
     Date timestamp = new Date();
     Buy command = new Buy("Tiger#1", timestamp);
-    mockMvc.perform(post("/buy")
+    mockMvc.perform(put("/buy")
         .content(this.json(command))
         .contentType(contentType))
         .andExpect(status().isOk())
@@ -104,7 +104,7 @@ public class AnimalAggregateLifecycleControllerTest {
     eventLogRepository.save(new EventLogEntry("Bought", "Tiger#2", timestamp));
 
     Buy command = new Buy("Tiger#2", new Date(timestamp.getTime() + 1));
-    mockMvc.perform(post("/buy")
+    mockMvc.perform(put("/buy")
         .content(this.json(command))
         .contentType(contentType))
         .andExpect(status().isOk())
@@ -123,7 +123,7 @@ public class AnimalAggregateLifecycleControllerTest {
     });
   }
 
-  protected String json(Object o) throws IOException {
+  private String json(Object o) throws IOException {
     MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage();
     this.mappingJackson2HttpMessageConverter.write(
         o, MediaType.APPLICATION_JSON, mockHttpOutputMessage);
