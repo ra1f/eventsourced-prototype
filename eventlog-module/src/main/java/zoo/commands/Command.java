@@ -1,8 +1,5 @@
 package zoo.commands;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 /**
  * Created by dueerkopra on 07.04.2015.
  */
@@ -10,41 +7,41 @@ public abstract class Command {
 
   protected String animalId;
 
-  protected Date timestamp;
+  protected Long sequenceId;
 
   public Command() {
   }
 
-  public Command(String animalId, Date timestamp) {
+  public Command(String animalId, Long sequenceId) {
     this.animalId = animalId;
-    this.timestamp = timestamp;
+    this.sequenceId = sequenceId;
   }
 
   public String getAnimalId() {
     return animalId;
   }
 
-  public Date getTimestamp() {
-    return timestamp;
+  public Long getSequenceId() {
+    return sequenceId;
   }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof Buy)) return false;
+    if (!(o instanceof Command)) return false;
 
     Command command = (Command) o;
 
-    if (animalId != null ? !animalId.equals(command.animalId) : command.animalId != null) return false;
-    if (timestamp != null ? !timestamp.equals(command.timestamp) : command.timestamp != null) return false;
+    if (!animalId.equals(command.animalId)) return false;
+    if (!sequenceId.equals(command.sequenceId)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = animalId != null ? animalId.hashCode() : 0;
-    result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
+    int result = animalId.hashCode();
+    result = 31 * result + sequenceId.hashCode();
     return result;
   }
 
@@ -52,7 +49,7 @@ public abstract class Command {
   public String toString() {
     return "{" +
         "animalId='" + animalId + '\'' +
-        ", timestamp=" + new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(timestamp) +
+        ", sequenceId=" + sequenceId +
         '}';
   }
 }

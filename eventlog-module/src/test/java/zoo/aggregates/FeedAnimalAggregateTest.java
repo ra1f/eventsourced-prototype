@@ -16,6 +16,7 @@ import zoo.persistence.EventLogEntry;
 import zoo.persistence.EventLogRepository;
 import zoo.services.AggregateLoader;
 import zoo.services.AnimalService;
+import zoo.services.EventStore;
 import zoo.states.FeelingOfSatiety;
 
 import java.util.Date;
@@ -37,6 +38,9 @@ public class FeedAnimalAggregateTest {
   @Autowired
   private EventLogRepository eventLogRepository;
 
+  @Autowired
+  private EventStore eventStore;
+
   @Before
   public void setup() throws Exception {
     eventLogRepository.deleteAll();
@@ -46,9 +50,9 @@ public class FeedAnimalAggregateTest {
   public void notBecomingFullerThanFull() throws Exception {
 
     Date oldTimestamp = new Date();
-    eventLogRepository.save(new EventLogEntry("Bought", "Elephant#1", oldTimestamp));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", 1L, "Bought", oldTimestamp));
 
-    AnimalAggregate elephant1 = aggregateLoader.replayAnimalAggregate("Elephant#1");
+    AnimalAggregate elephant1 = aggregateLoader.replayFromOrigin("Elephant#1", eventStore);
 
     Assert.assertEquals("Elephant#1", elephant1.getId());
     Assert.assertEquals(oldTimestamp, elephant1.getTimestamp());
@@ -58,8 +62,8 @@ public class FeedAnimalAggregateTest {
     Assert.assertEquals(FeelingOfSatiety.full, elephant1.getFeelingOfSatiety());
 
     Date newTimestamp = new Date(oldTimestamp.getTime() + 1);
-    animalService.feed(new Feed(elephant1.getId(), newTimestamp));
-    AnimalAggregate newState = aggregateLoader.replayAnimalAggregate(elephant1.getId());
+    animalService.feed(new Feed(elephant1.getId(), 2L));
+    AnimalAggregate newState = aggregateLoader.replayFromOrigin(elephant1.getId(), eventStore);
 
     Assert.assertEquals("Elephant#1", newState.getId());
     Assert.assertEquals(newTimestamp, newState.getTimestamp());
@@ -77,7 +81,7 @@ public class FeedAnimalAggregateTest {
     eventLogRepository.save(new EventLogEntry("Bought", "Elephant#1", firstTimestamp));
     eventLogRepository.save(new EventLogEntry("Digested", "Elephant#1", secondTimestamp));
 
-    AnimalAggregate elephant1 = aggregateLoader.replayAnimalAggregate("Elephant#1");
+    AnimalAggregate elephant1 = aggregateLoader.replayFromOrigin("Elephant#1");
 
     Assert.assertEquals("Elephant#1", elephant1.getId());
     Assert.assertEquals(secondTimestamp, elephant1.getTimestamp());
@@ -88,7 +92,7 @@ public class FeedAnimalAggregateTest {
 
     Date thirdTimestamp = new Date(firstTimestamp.getTime() + 1);
     animalService.feed(new Feed(elephant1.getId(), thirdTimestamp));
-    AnimalAggregate newState = aggregateLoader.replayAnimalAggregate(elephant1.getId());
+    AnimalAggregate newState = aggregateLoader.replayFromOrigin(elephant1.getId());
 
     Assert.assertEquals("Elephant#1", newState.getId());
     Assert.assertEquals(thirdTimestamp, newState.getTimestamp());
@@ -108,7 +112,7 @@ public class FeedAnimalAggregateTest {
     eventLogRepository.save(new EventLogEntry("Digested", "Elephant#1", new Date(firstTimestamp.getTime() + 2)));
     eventLogRepository.save(new EventLogEntry("Died", "Elephant#1", secondTimestamp));
 
-    AnimalAggregate elephant1 = aggregateLoader.replayAnimalAggregate("Elephant#1");
+    AnimalAggregate elephant1 = aggregateLoader.replayFromOrigin("Elephant#1");
 
     Assert.assertEquals("Elephant#1", elephant1.getId());
     Assert.assertEquals(secondTimestamp, elephant1.getTimestamp());
@@ -136,7 +140,7 @@ public class FeedAnimalAggregateTest {
     eventLogRepository.save(new EventLogEntry("Digested", "Leopard#1", new Date(firstTimestamp.getTime() + 1)));
     eventLogRepository.save(new EventLogEntry("Digested", "Leopard#1", secondTimestamp));
 
-    AnimalAggregate leopard1 = aggregateLoader.replayAnimalAggregate("Leopard#1");
+    AnimalAggregate leopard1 = aggregateLoader.replayFromOrigin("Leopard#1");
 
     Assert.assertEquals("Leopard#1", leopard1.getId());
     Assert.assertEquals(secondTimestamp, leopard1.getTimestamp());
@@ -149,7 +153,7 @@ public class FeedAnimalAggregateTest {
     Date thirdTimestamp = new Date(secondTimestamp.getTime() + 1);
     animalService.feed(new Feed(leopard1.getId(), thirdTimestamp));
 
-    AnimalAggregate newState = aggregateLoader.replayAnimalAggregate(leopard1.getId());
+    AnimalAggregate newState = aggregateLoader.replayFromOrigin(leopard1.getId());
 
     Assert.assertEquals("Leopard#1", newState.getId());
     Assert.assertEquals(thirdTimestamp, newState.getTimestamp());

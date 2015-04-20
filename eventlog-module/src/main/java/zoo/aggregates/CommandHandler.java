@@ -1,13 +1,14 @@
 package zoo.aggregates;
 
+import zoo.commands.Command;
+import zoo.dto.Events;
+import zoo.events.Event;
 import zoo.exceptions.ZooException;
-
-import java.util.Collection;
 
 /**
  * Created by dueerkopra on 07.04.2015.
  */
-public interface CommandHandler<C, E> {
+public interface CommandHandler<C extends Command, E extends Event> {
 
-  Collection<E> handleCommand(C command) throws ZooException;
+  Events<E> handleCommand(C command) throws ZooException;
 }

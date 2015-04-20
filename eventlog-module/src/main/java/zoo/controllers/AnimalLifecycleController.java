@@ -26,7 +26,7 @@ public class AnimalLifecycleController {
     logger.info(buy.toString());
     CommandResult result = new CommandResult();
     try {
-      animalService.buy(buy);
+      result.setSequenceId(animalService.buy(buy));
       result.setSuccess(true);
     } catch (Exception e) {
       logger.error("Error in /buy", e);
@@ -40,7 +40,7 @@ public class AnimalLifecycleController {
     logger.info(feed.toString());
     CommandResult result = new CommandResult();
     try {
-      animalService.feed(feed);
+      result.setSequenceId(animalService.feed(feed));
       result.setSuccess(true);
     } catch (Exception e) {
       logger.error("Error in /feed", e);
@@ -54,7 +54,7 @@ public class AnimalLifecycleController {
     logger.info(digest.toString());
     CommandResult result = new CommandResult();
     try {
-      animalService.digest(digest);
+      result.setSequenceId(animalService.digest(digest));
       result.setSuccess(true);
     } catch (Exception e) {
       logger.error("Error in /digest", e);

@@ -86,7 +86,7 @@ public class AnimalAggregateLifecycleControllerTest {
         .andExpect(jsonPath("$.success", is(true)));
 
     Collection<EventLogEntry> eventLogs =
-        eventLogRepository.findByAnimalId("Tiger#1", new Sort(Sort.Direction.ASC, "occurence"));
+        eventLogRepository.findById("Tiger#1", new Sort(Sort.Direction.ASC, "occurence"));
 
     Assert.assertEquals(1, eventLogs.size());
 
@@ -112,7 +112,7 @@ public class AnimalAggregateLifecycleControllerTest {
         .andExpect(jsonPath("$.success", is(false)));// Must fail because Tiger#2 is already there.
 
     Collection<EventLogEntry> eventLogs =
-        eventLogRepository.findByAnimalId("Tiger#2", new Sort(Sort.Direction.ASC, "occurence"));
+        eventLogRepository.findById("Tiger#2", new Sort(Sort.Direction.ASC, "occurence"));
 
     Assert.assertEquals(1, eventLogs.size());
 

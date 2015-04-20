@@ -4,11 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import zoo.aggregates.AnimalAggregate;
 import zoo.commands.*;
+import zoo.dto.Events;
 import zoo.events.Event;
 import zoo.exceptions.AggregateLoadException;
 import zoo.exceptions.ZooException;
 
-import java.util.Collection;
+import static zoo.services.AggregateLoader.replayFromOrigin;
 
 /**
  * Created by dueerkopra on 09.04.2015.
@@ -17,31 +18,37 @@ import java.util.Collection;
 public class AnimalService {
 
   @Autowired
-  private AggregateLoader aggregateLoader;
-
-  @Autowired
   private EventStore eventStore;
 
-  public void buy(Buy buy) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate(buy.getAnimalId());
-    Collection<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
-    eventStore.saveEvents(buy.getAnimalId(), events);
+  public Long buy(Buy buy) throws AggregateLoadException, ZooException {
+    AnimalAggregate animalAggregate = replayFromOrigin(buy.getAnimalId(), eventStore);
+    Events<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
+    if (!events.getEvents().isEmpty()) {
+      eventStore.save(events);
+    }
+    return events.getSequenceId();
   }
 
   public void sell(Sell sell) throws AggregateLoadException, ZooException {
     throw new ZooException("Not implemented");
   }
 
-  public void feed(Feed feed) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate(feed.getAnimalId());
-    Collection<Event> events = animalAggregate.asFeedCommandHandler().handleCommand(feed);
-    eventStore.saveEvents(feed.getAnimalId(), events);
+  public Long feed(Feed feed) throws AggregateLoadException, ZooException {
+    AnimalAggregate animalAggregate = replayFromOrigin(feed.getAnimalId(), eventStore);
+    Events<Event> events = animalAggregate.asFeedCommandHandler().handleCommand(feed);
+    if (!events.getEvents().isEmpty()) {
+      eventStore.save(events);
+    }
+    return events.getSequenceId();
   }
 
-  public void digest(Digest digest) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = aggregateLoader.replayAnimalAggregate(digest.getAnimalId());
-    Collection<Event> events = animalAggregate.asDigestCommandHandler().handleCommand(digest);
-    eventStore.saveEvents(digest.getAnimalId(), events);
+  public Long digest(Digest digest) throws AggregateLoadException, ZooException {
+    AnimalAggregate animalAggregate = replayFromOrigin(digest.getAnimalId(), eventStore);
+    Events<Event> events = animalAggregate.asDigestCommandHandler().handleCommand(digest);
+    if (!events.getEvents().isEmpty()) {
+      eventStore.save(events);
+    }
+    return events.getSequenceId();
   }
 
   public void play(Play play) throws AggregateLoadException, ZooException {

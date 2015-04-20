@@ -1,29 +1,29 @@
 package zoo.aggregates;
 
-import java.util.Date;
-
 /**
  * Created by dueerkopra on 07.04.2015.
  */
 public abstract class Aggregate {
 
-  protected String id;
+  protected final String id;
 
-  protected Date timestamp;
+  protected final Long sequenceId;
 
-  public Aggregate(String id, Date timestamp) {
+  public Aggregate(String id, Long sequenceId) {
     this.id = id;
-    this.timestamp = timestamp;
+    this.sequenceId = sequenceId;
   }
 
   public Aggregate() {
+    id = null;
+    sequenceId = null;
   }
 
   public String getId() {
     return id;
   }
 
-  public Date getTimestamp() {
-    return timestamp;
+  public Long getSequenceId() {
+    return sequenceId;
   }
 }

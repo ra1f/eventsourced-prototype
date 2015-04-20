@@ -19,6 +19,9 @@ public class Animal {
   @Column(name="animal_id")
   private String animalId;
 
+  @Column(name="seq_id")
+  private Long sequenceId;
+
   @Column(name = "last_occurence")
   @Temporal(TemporalType.TIMESTAMP)
   private Date lastOccurence;
@@ -42,17 +45,20 @@ public class Animal {
   /**
    * Convenience constructor
    * @param animalId
+   * @param sequenceId
    * @param lastOccurence
    * @param feelingOfSatiety
    * @param mindstate
    * @param hygiene
    */
   public Animal(String animalId,
+                Long sequenceId,
                 Date lastOccurence,
                 FeelingOfSatiety feelingOfSatiety,
                 Mindstate mindstate,
                 Hygiene hygiene) {
     this.animalId = animalId;
+    this.sequenceId = sequenceId;
     this.lastOccurence = lastOccurence;
     this.feelingOfSatiety = feelingOfSatiety;
     this.mindstate = mindstate;
@@ -62,6 +68,7 @@ public class Animal {
   /**
    * Copy constructor
    * @param animalId
+   * @param sequenceId
    * @param lastOccurence
    * @param feelingOfSatiety
    * @param mindstate
@@ -69,12 +76,14 @@ public class Animal {
    * @param version
    */
   public Animal(String animalId,
+                Long sequenceId,
                 Date lastOccurence,
                 FeelingOfSatiety feelingOfSatiety,
                 Mindstate mindstate,
                 Hygiene hygiene,
                 Integer version) {
     this.animalId = animalId;
+    this.sequenceId = sequenceId;
     this.lastOccurence = lastOccurence;
     this.feelingOfSatiety = feelingOfSatiety;
     this.mindstate = mindstate;
@@ -91,48 +100,28 @@ public class Animal {
     return animalId;
   }
 
-  public void setAnimalId(String animalId) {
-    this.animalId = animalId;
+  public Long getSequenceId() {
+    return sequenceId;
   }
 
   public Date getLastOccurence() {
     return lastOccurence;
   }
 
-  public void setLastOccurence(Date lastOccurence) {
-    this.lastOccurence = lastOccurence;
-  }
-
   public FeelingOfSatiety getFeelingOfSatiety() {
     return feelingOfSatiety;
-  }
-
-  public void setFeelingOfSatiety(FeelingOfSatiety feelingOfSatiety) {
-    this.feelingOfSatiety = feelingOfSatiety;
   }
 
   public Mindstate getMindstate() {
     return mindstate;
   }
 
-  public void setMindstate(Mindstate mindstate) {
-    this.mindstate = mindstate;
-  }
-
   public Hygiene getHygiene() {
     return hygiene;
   }
 
-  public void setHygiene(Hygiene hygiene) {
-    this.hygiene = hygiene;
-  }
-
   public Integer getVersion() {
     return version;
-  }
-
-  public void setVersion(Integer version) {
-    this.version = version;
   }
 
   @Override
@@ -142,30 +131,22 @@ public class Animal {
 
     Animal animal = (Animal) o;
 
-    if (animalId != null ? !animalId.equals(animal.animalId) : animal.animalId != null) return false;
-    if (feelingOfSatiety != animal.feelingOfSatiety) return false;
-    if (hygiene != animal.hygiene) return false;
-    if (lastOccurence != null ? !lastOccurence.equals(animal.lastOccurence) : animal.lastOccurence != null) return false;
-    if (mindstate != animal.mindstate) return false;
+    if (!animalId.equals(animal.animalId)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = animalId != null ? animalId.hashCode() : 0;
-    result = 31 * result + (lastOccurence != null ? lastOccurence.hashCode() : 0);
-    result = 31 * result + (feelingOfSatiety != null ? feelingOfSatiety.hashCode() : 0);
-    result = 31 * result + (mindstate != null ? mindstate.hashCode() : 0);
-    result = 31 * result + (hygiene != null ? hygiene.hashCode() : 0);
-    return result;
+    return animalId.hashCode();
   }
 
   @Override
   public String toString() {
     return String.format(
-        "Animal[animalId='%s', lastOccurence='%s', feelingOfSatiety='%s', mindstate='%s', hygiene='%s', version='%d']",
+        "Animal[animalId='%s', sequenceId='%d', lastOccurence='%s', feelingOfSatiety='%s', mindstate='%s', hygiene='%s', version='%d']",
         animalId,
+        sequenceId,
         lastOccurence == null? null: new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(lastOccurence),
         feelingOfSatiety,
         mindstate,
