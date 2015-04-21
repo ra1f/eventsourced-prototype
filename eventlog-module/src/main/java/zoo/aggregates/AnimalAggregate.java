@@ -1,9 +1,6 @@
 package zoo.aggregates;
 
-import zoo.commands.Buy;
-import zoo.commands.Command;
-import zoo.commands.Digest;
-import zoo.commands.Feed;
+import zoo.commands.*;
 import zoo.dto.Events;
 import zoo.events.*;
 import zoo.exceptions.AnimalAlreadyThereException;
@@ -74,6 +71,8 @@ public class AnimalAggregate extends Aggregate {
     return existing;
   }
 
+  // Command Handlers
+
   public CommandHandler<Buy, Event> asBuyCommandHandler() {
     return new CommandHandler<Buy, Event>() {
       @Override
@@ -83,6 +82,17 @@ public class AnimalAggregate extends Aggregate {
         }
         return handleIdempotency(command,
             Arrays.asList(new Bought(command.getAnimalId(), command.getSequenceId())));
+      }
+    };
+  }
+
+  public CommandHandler<Sell, Event> asSellCommandHandler() {
+    return new CommandHandler<Sell, Event>() {
+      @Override
+      public Events<Event> handleCommand(Sell command) throws ZooException {
+        validateExistence(command);
+        return handleIdempotency(command,
+            Arrays.asList(new Sold(command.getAnimalId(), command.getSequenceId())));
       }
     };
   }
@@ -114,6 +124,33 @@ public class AnimalAggregate extends Aggregate {
     };
   }
 
+  public CommandHandler<Play, Event> asPlayCommandHandler() {
+    return new CommandHandler<Play, Event>() {
+      @Override
+      public Events<Event> handleCommand(Play command) throws ZooException {
+        validateExistence(command);
+        return handleIdempotency(command,
+            Arrays.asList(new Played(command.getAnimalId(), command.getSequenceId())));
+      }
+    };
+  }
+
+  public CommandHandler<Sadden, Event> asSaddenCommandHandler() {
+    return new CommandHandler<Sadden, Event>() {
+      @Override
+      public Events<Event> handleCommand(Sadden command) throws ZooException {
+        validateExistence(command);
+        Event event = new Saddened(command.getAnimalId(), command.getSequenceId());
+        if (mindstate.isWorst()) {
+          event = new Died(command.getAnimalId(), command.getSequenceId());
+        }
+        return handleIdempotency(command, Arrays.asList(event));
+      }
+    };
+  }
+
+  // Event Appliers
+
   public EventApplier<Bought> asBoughtEventApplier() {
     return new EventApplier<Bought>() {
       @Override
@@ -125,6 +162,21 @@ public class AnimalAggregate extends Aggregate {
             FeelingOfSatiety.full,
             Mindstate.happy,
             Hygiene.tidy);
+      }
+    };
+  }
+
+  public EventApplier<Sold> asSoldEventApplier() {
+    return new EventApplier<Sold>() {
+      @Override
+      public AnimalAggregate applyEvent(Sold event) {
+        return new AnimalAggregate(event.getAnimalId(),
+            event.getSequenceId(),
+            new Date(),
+            false,
+            feelingOfSatiety,
+            mindstate,
+            hygiene);
       }
     };
   }
@@ -174,6 +226,36 @@ public class AnimalAggregate extends Aggregate {
     };
   }
 
+  public EventApplier<Played> asPlayedEventApplier() {
+    return new EventApplier<Played>() {
+      @Override
+      public AnimalAggregate applyEvent(Played event) {
+        return new AnimalAggregate(event.getAnimalId(),
+            event.getSequenceId(),
+            new Date(),
+            existing,
+            feelingOfSatiety,
+            mindstate.better(),
+            hygiene);
+      }
+    };
+  }
+
+  public EventApplier<Saddened> asSaddenedEventApplier() {
+    return new EventApplier<Saddened>() {
+      @Override
+      public AnimalAggregate applyEvent(Saddened event) {
+        return new AnimalAggregate(event.getAnimalId(),
+            event.getSequenceId(),
+            new Date(),
+            existing,
+            feelingOfSatiety,
+            mindstate.worse(),
+            hygiene);
+      }
+    };
+  }
+
   private void validateExistence(Command command) throws NoSuchAnimalException {
     if (!existing) {
       throw new NoSuchAnimalException(command.toString());
@@ -198,7 +280,7 @@ public class AnimalAggregate extends Aggregate {
       }
     }
 
-    Events<Event> retVal = new Events<>(id, eventsToSave, this.sequenceId + events.size());
+    Events<Event> retVal = new Events<>(command.getAnimalId(), eventsToSave, this.sequenceId + events.size());
     return retVal;
   }
 

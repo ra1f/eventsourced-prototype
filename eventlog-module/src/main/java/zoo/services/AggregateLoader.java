@@ -16,20 +16,25 @@ public class AggregateLoader {
   private static BiFunction<AnimalAggregate, ? super EventLogEntry, AnimalAggregate> reduceByEventLogEntry = (aggregate, eventLogEntry) -> {
     if (eventLogEntry.getEvent().equals(Bought.class.getSimpleName())) {
       return aggregate.asBoughtEventApplier().applyEvent(new Bought(eventLogEntry.getId(),
-          eventLogEntry.getSequenceId(),
-          eventLogEntry.getTransactionId()));
-    } if (eventLogEntry.getEvent().equals(Died.class.getSimpleName())) {
+          eventLogEntry.getSequenceId()));
+    } else if (eventLogEntry.getEvent().equals(Sold.class.getSimpleName())) {
+      return aggregate.asSoldEventApplier().applyEvent(new Sold(eventLogEntry.getId(),
+          eventLogEntry.getSequenceId()));
+    } else if (eventLogEntry.getEvent().equals(Died.class.getSimpleName())) {
       return aggregate.asDiedEventApplier().applyEvent(new Died(eventLogEntry.getId(),
-          eventLogEntry.getSequenceId(),
-          eventLogEntry.getTransactionId()));
+          eventLogEntry.getSequenceId()));
     } else if (eventLogEntry.getEvent().equals(Fed.class.getSimpleName())) {
       return aggregate.asFedEventApplier().applyEvent(new Fed(eventLogEntry.getId(),
-          eventLogEntry.getSequenceId(),
-          eventLogEntry.getTransactionId()));
+          eventLogEntry.getSequenceId()));
     } else if (eventLogEntry.getEvent().equals(Digested.class.getSimpleName())) {
       return aggregate.asDigestedEventApplier().applyEvent(new Digested(eventLogEntry.getId(),
-          eventLogEntry.getSequenceId(),
-          eventLogEntry.getTransactionId()));
+          eventLogEntry.getSequenceId()));
+    } else if (eventLogEntry.getEvent().equals(Played.class.getSimpleName())) {
+      return aggregate.asPlayedEventApplier().applyEvent(new Played(eventLogEntry.getId(),
+          eventLogEntry.getSequenceId()));
+    } else if (eventLogEntry.getEvent().equals(Saddened.class.getSimpleName())) {
+      return aggregate.asSaddenedEventApplier().applyEvent(new Saddened(eventLogEntry.getId(),
+          eventLogEntry.getSequenceId()));
     } else {
       throw new RuntimeException(String.format("Event %s not handled", eventLogEntry));
     }
@@ -38,14 +43,18 @@ public class AggregateLoader {
   private static BiFunction<AnimalAggregate, ? super Event, AnimalAggregate> reduceByEvent = (aggregate, event) -> {
     if (event instanceof Bought) {
       return aggregate.asBoughtEventApplier().applyEvent((Bought) event);
-    }
-    else if (event instanceof Died) {
+    } else if (event instanceof Sold) {
+      return aggregate.asSoldEventApplier().applyEvent((Sold) event);
+    } else if (event instanceof Died) {
       return aggregate.asDiedEventApplier().applyEvent((Died) event);
-    }
-    else if (event instanceof Fed) {
+    } else if (event instanceof Fed) {
       return aggregate.asFedEventApplier().applyEvent((Fed) event);
     } else if (event instanceof Digested) {
       return aggregate.asDigestedEventApplier().applyEvent((Digested) event);
+    } else if (event instanceof Played) {
+      return aggregate.asPlayedEventApplier().applyEvent((Played) event);
+    } else if (event instanceof Saddened) {
+      return aggregate.asSaddenedEventApplier().applyEvent((Saddened) event);
     } else {
       throw new RuntimeException(String.format("Event %s not handled", event));
     }

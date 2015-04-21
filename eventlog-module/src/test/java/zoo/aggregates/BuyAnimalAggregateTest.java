@@ -1,6 +1,5 @@
 package zoo.aggregates;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +21,7 @@ import zoo.states.FeelingOfSatiety;
 import java.util.Collection;
 import java.util.Date;
 
+import static org.junit.Assert.*;
 import static zoo.services.AggregateLoader.replayFromOrigin;
 
 /**
@@ -46,51 +46,49 @@ public class BuyAnimalAggregateTest {
   @Test
   public void justBuy() throws Exception {
 
-    Buy buy = new Buy("Lion#1", 1L);
+    AnimalAggregate animalAggregate = replayFromOrigin("Lion#1", eventStore);
 
-    AnimalAggregate animalAggregate = replayFromOrigin(buy.getAnimalId(), eventStore);
+    assertNull(animalAggregate.getId());
+    assertNull(animalAggregate.getTimestamp());
+    assertFalse(animalAggregate.isExisting());
+    assertNull(animalAggregate.getFeelingOfSatiety());
 
-    Assert.assertNull(animalAggregate.getId());
-    Assert.assertNull(animalAggregate.getTimestamp());
-    Assert.assertFalse(animalAggregate.isExisting());
-    Assert.assertNull(animalAggregate.getFeelingOfSatiety());
-
-    Collection<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
-    eventStore.save(new Events(buy.getAnimalId(), events));
+    Buy buy = new Buy("Lion#1");
+    Events<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
+    eventStore.save(new Events(buy.getAnimalId(), events.getEvents(), buy.getSequenceId()));
 
     AnimalAggregate newState = replayFromOrigin("Lion#1", eventStore);
 
-    Assert.assertEquals("Lion#1", newState.getId());
-    Assert.assertEquals(1L, newState.getSequenceId().longValue());
-    Assert.assertTrue(newState.isExisting());
-    Assert.assertEquals(FeelingOfSatiety.full, newState.getFeelingOfSatiety());
+    assertEquals("Lion#1", newState.getId());
+    assertEquals(0L, newState.getSequenceId().longValue());
+    assertTrue(newState.isExisting());
+    assertEquals(FeelingOfSatiety.full, newState.getFeelingOfSatiety());
 
     Collection<EventLogEntry> eventLogs =
         eventLogRepository.findById("Lion#1", new Sort(Sort.Direction.ASC, "occurence"));
 
-    Assert.assertEquals(1, eventLogs.size());
+    assertEquals(1, eventLogs.size());
 
     eventLogs.stream().forEach(eventLogEntry -> {
-      Assert.assertEquals("Bought", eventLogEntry.getEvent());
-      Assert.assertEquals("Lion#1", eventLogEntry.getId());
-      Assert.assertEquals(1L, newState.getSequenceId().longValue());
+      assertEquals("Bought", eventLogEntry.getEvent());
+      assertEquals("Lion#1", eventLogEntry.getId());
+      assertEquals(0L, newState.getSequenceId().longValue());
     });
   }
 
   @Test
   public void cannotBeBoughtAfterAlreadyBeeingBought() throws Exception {
 
-    Date oldDate = new Date();
-    eventLogRepository.save(new EventLogEntry("Elephant#1", 1L, 1L, "Bought", oldDate));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 1L, new Date()));
 
     AnimalAggregate animalAggregate = replayFromOrigin("Elephant#1", eventStore);
 
+    Buy buy = new Buy("Elephant#1", 2L);
     try {
-      Buy buy = new Buy("Elephant#1", 2L);
       animalAggregate.asBuyCommandHandler().handleCommand(buy);
-      Assert.fail(String.format("Expected exception: %s", AnimalAlreadyThereException.class));
+      fail(String.format("Expected exception: %s", AnimalAlreadyThereException.class));
     } catch (AnimalAlreadyThereException e) {
-      Assert.assertEquals(e.getMessage(), "Elephant#1");
+      assertEquals(e.getMessage(), buy.toString());
     }
   }
 }

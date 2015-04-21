@@ -1,6 +1,7 @@
 package zoo.persistence;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -8,8 +9,25 @@ import java.util.Date;
  * Created by dueerkopra on 30.03.2015.
  */
 @Entity
+@IdClass(EventLogEntry.PrimaryKey.class)
 @Table(name="eventlog")
-public class EventLogEntry {
+public class EventLogEntry implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
+  static class PrimaryKey implements Serializable {
+
+    private String id;
+    private Long sequenceId;
+
+    public PrimaryKey(String id, Long sequenceId) {
+      this.id = id;
+      this.sequenceId = sequenceId;
+    }
+
+    public PrimaryKey() {
+    }
+  }
 
   @Id
   @Column(name = "agg_id")
@@ -28,7 +46,7 @@ public class EventLogEntry {
 
   protected EventLogEntry() {}
 
-  public EventLogEntry(String id, Long sequenceId, String event, Date occurence) {
+  public EventLogEntry(String id, String event, Long sequenceId, Date occurence) {
     this.id = id;
     this.sequenceId = sequenceId;
     this.event = event;

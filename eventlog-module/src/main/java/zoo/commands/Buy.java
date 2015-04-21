@@ -12,6 +12,10 @@ public class Buy extends Command {
     super(animalId, sequenceId);
   }
 
+  public Buy(String animalId) {
+    super(animalId, 0L);
+  }
+
   @Override
   public String toString() {
     return "Buy" + super.toString();

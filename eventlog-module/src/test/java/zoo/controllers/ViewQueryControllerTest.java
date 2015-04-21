@@ -1,6 +1,5 @@
 package zoo.controllers;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,6 +9,7 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -17,18 +17,21 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 import zoo.ZooEventLogApp;
 import zoo.commands.Buy;
+import zoo.commands.Digest;
+import zoo.commands.Sadden;
 import zoo.persistence.AnimalRepository;
 import zoo.persistence.EventLogRepository;
 import zoo.services.AnimalService;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Date;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 /**
@@ -61,7 +64,7 @@ public class ViewQueryControllerTest {
     this.mappingJackson2HttpMessageConverter = Arrays.asList(converters).stream().filter(
         hmc -> hmc instanceof MappingJackson2HttpMessageConverter).findAny().get();
 
-    Assert.assertNotNull("the JSON message converter must not be null",
+    assertNotNull("the JSON message converter must not be null",
         this.mappingJackson2HttpMessageConverter);
   }
 
@@ -70,6 +73,13 @@ public class ViewQueryControllerTest {
 
   @Autowired
   private EventLogRepository eventLogRepository;
+
+  private String json(Object o) throws IOException {
+    MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage();
+    this.mappingJackson2HttpMessageConverter.write(
+        o, MediaType.APPLICATION_JSON, mockHttpOutputMessage);
+    return mockHttpOutputMessage.getBodyAsString();
+  }
 
   @Before
   public void setup() throws Exception {
@@ -89,20 +99,125 @@ public class ViewQueryControllerTest {
   @Test
   public void foundAfterBuying() throws Exception {
 
-    Date creationDate = new Date();
-    Buy buy = new Buy("Giraffe1", creationDate);
-    animalService.buy(buy);
+    Buy buy = new Buy("Giraffe1");
+    Long sequenceId = animalService.buy(buy);
 
     Thread.sleep(1000);
 
     mockMvc.perform(get("/animals/Giraffe1")
         .accept(contentType))
         .andExpect(status().isOk())
+        .andExpect(jsonPath("$.sequenceId", is(sequenceId.intValue())))
         .andExpect(jsonPath("$.animalId", is("Giraffe1")))
-        .andExpect(jsonPath("$.lastOccurence", is(creationDate.getTime())))
         .andExpect(jsonPath("$.feelingOfSatiety", is("full")))
         .andExpect(jsonPath("$.mindstate", is("happy")))
         .andExpect(jsonPath("$.hygiene", is("tidy")));
+  }
+
+  @Test
+  public void hungryAfterDigesting() throws Exception {
+
+    Buy buy = new Buy("Crocodile");
+    Long sequenceId = animalService.buy(buy);
+    sequenceId = animalService.digest(new Digest(buy.getAnimalId(), sequenceId + 1));
+
+    Thread.sleep(1000);
+
+    mockMvc.perform(get("/animals/Crocodile")
+        .accept(contentType))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.sequenceId", is(sequenceId.intValue())))
+        .andExpect(jsonPath("$.animalId", is("Crocodile")))
+        .andExpect(jsonPath("$.feelingOfSatiety", is("hungry")))
+        .andExpect(jsonPath("$.mindstate", is("happy")))
+        .andExpect(jsonPath("$.hygiene", is("tidy")));
+  }
+
+  @Test
+  public void boredToDeath() throws Exception {
+
+    // Let's buy a kangaroo
+    Buy buy = new Buy("Kangaroo");
+    mockMvc.perform(put("/buy")
+        .content(this.json(buy))
+        .contentType(contentType))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(contentType))
+        .andExpect(jsonPath("$.success", is(true)))
+        .andExpect(jsonPath("$.sequenceId", is(0)));
+
+    Thread.sleep(1000);
+
+    // What did we buy
+    mockMvc.perform(get("/animals/Kangaroo")
+        .accept(contentType))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.sequenceId", is(0)))
+        .andExpect(jsonPath("$.animalId", is("Kangaroo")))
+        .andExpect(jsonPath("$.feelingOfSatiety", is("full")))
+        .andExpect(jsonPath("$.mindstate", is("happy")))
+        .andExpect(jsonPath("$.hygiene", is("tidy")));
+
+    // The kangaroo is saddening
+    Sadden sadden = new Sadden("Kangaroo", 1L);
+    mockMvc.perform(put("/sadden")
+        .content(this.json(sadden))
+        .contentType(contentType))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(contentType))
+        .andExpect(jsonPath("$.success", is(true)))
+        .andExpect(jsonPath("$.sequenceId", is(1)));
+
+    Thread.sleep(1000);
+
+    // Kangaroo should be moody now?
+    mockMvc.perform(get("/animals/Kangaroo")
+        .accept(contentType))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.sequenceId", is(1)))
+        .andExpect(jsonPath("$.animalId", is("Kangaroo")))
+        .andExpect(jsonPath("$.feelingOfSatiety", is("full")))
+        .andExpect(jsonPath("$.mindstate", is("moody")))
+        .andExpect(jsonPath("$.hygiene", is("tidy")));
+
+    // The kangaroo is even more saddening
+    sadden = new Sadden("Kangaroo", 2L);
+    mockMvc.perform(put("/sadden")
+        .content(this.json(sadden))
+        .contentType(contentType))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(contentType))
+        .andExpect(jsonPath("$.success", is(true)))
+        .andExpect(jsonPath("$.sequenceId", is(2)));
+
+    Thread.sleep(1000);
+
+    // Kangaroo should be boredOut now?
+    mockMvc.perform(get("/animals/Kangaroo")
+        .accept(contentType))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.sequenceId", is(2)))
+        .andExpect(jsonPath("$.animalId", is("Kangaroo")))
+        .andExpect(jsonPath("$.feelingOfSatiety", is("full")))
+        .andExpect(jsonPath("$.mindstate", is("boredOut")))
+        .andExpect(jsonPath("$.hygiene", is("tidy")));
+
+    // The kangaroo is even more saddening
+    sadden = new Sadden("Kangaroo", 3L);
+    mockMvc.perform(put("/sadden")
+        .content(this.json(sadden))
+        .contentType(contentType))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(contentType))
+        .andExpect(jsonPath("$.success", is(true)))
+        .andExpect(jsonPath("$.sequenceId", is(3)));
+
+    Thread.sleep(1000);
+
+    // The kangaroo passed away
+    mockMvc.perform(get("/animals/Kangaroo")
+        .accept(contentType))
+        .andExpect(status().isNotFound());
   }
 
 

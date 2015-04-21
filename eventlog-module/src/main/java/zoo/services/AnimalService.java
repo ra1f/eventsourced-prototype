@@ -21,7 +21,7 @@ public class AnimalService {
   private EventStore eventStore;
 
   public Long buy(Buy buy) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = replayFromOrigin(buy.getAnimalId(), eventStore);
+    AnimalAggregate animalAggregate = replay(buy.getAnimalId());
     Events<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
     if (!events.getEvents().isEmpty()) {
       eventStore.save(events);
@@ -29,12 +29,17 @@ public class AnimalService {
     return events.getSequenceId();
   }
 
-  public void sell(Sell sell) throws AggregateLoadException, ZooException {
-    throw new ZooException("Not implemented");
+  public Long sell(Sell sell) throws AggregateLoadException, ZooException {
+    AnimalAggregate animalAggregate = replay(sell.getAnimalId());
+    Events<Event> events = animalAggregate.asSellCommandHandler().handleCommand(sell);
+    if (!events.getEvents().isEmpty()) {
+      eventStore.save(events);
+    }
+    return events.getSequenceId();
   }
 
   public Long feed(Feed feed) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = replayFromOrigin(feed.getAnimalId(), eventStore);
+    AnimalAggregate animalAggregate = replay(feed.getAnimalId());
     Events<Event> events = animalAggregate.asFeedCommandHandler().handleCommand(feed);
     if (!events.getEvents().isEmpty()) {
       eventStore.save(events);
@@ -43,7 +48,7 @@ public class AnimalService {
   }
 
   public Long digest(Digest digest) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = replayFromOrigin(digest.getAnimalId(), eventStore);
+    AnimalAggregate animalAggregate = replay(digest.getAnimalId());
     Events<Event> events = animalAggregate.asDigestCommandHandler().handleCommand(digest);
     if (!events.getEvents().isEmpty()) {
       eventStore.save(events);
@@ -51,12 +56,22 @@ public class AnimalService {
     return events.getSequenceId();
   }
 
-  public void play(Play play) throws AggregateLoadException, ZooException {
-    throw new ZooException("Not implemented");
+  public Long play(Play play) throws AggregateLoadException, ZooException {
+    AnimalAggregate animalAggregate = replay(play.getAnimalId());
+    Events<Event> events = animalAggregate.asPlayCommandHandler().handleCommand(play);
+    if (!events.getEvents().isEmpty()) {
+      eventStore.save(events);
+    }
+    return events.getSequenceId();
   }
 
-  public void sadden(Sadden sadden) throws AggregateLoadException, ZooException {
-    throw new ZooException("Not implemented");
+  public Long sadden(Sadden sadden) throws AggregateLoadException, ZooException {
+    AnimalAggregate animalAggregate = replay(sadden.getAnimalId());
+    Events<Event> events = animalAggregate.asSaddenCommandHandler().handleCommand(sadden);
+    if (!events.getEvents().isEmpty()) {
+      eventStore.save(events);
+    }
+    return events.getSequenceId();
   }
 
   public void cleanUp(CleanUp cleanUp) throws AggregateLoadException, ZooException {
@@ -67,7 +82,9 @@ public class AnimalService {
     throw new ZooException("Not implemented");
   }
 
-
+  private AnimalAggregate replay(String id) throws AggregateLoadException {
+    return replayFromOrigin(id, eventStore);
+  }
 
 
 }

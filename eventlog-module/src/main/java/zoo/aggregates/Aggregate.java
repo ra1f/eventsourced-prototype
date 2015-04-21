@@ -16,7 +16,7 @@ public abstract class Aggregate {
 
   public Aggregate() {
     id = null;
-    sequenceId = null;
+    sequenceId = -1L;
   }
 
   public String getId() {

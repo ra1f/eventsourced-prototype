@@ -1,6 +1,5 @@
 package zoo.aggregates;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,7 +9,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import zoo.ZooEventLogApp;
 import zoo.commands.Feed;
-import zoo.exceptions.AnimalAlreadyThereException;
 import zoo.exceptions.NoSuchAnimalException;
 import zoo.persistence.EventLogEntry;
 import zoo.persistence.EventLogRepository;
@@ -21,6 +19,8 @@ import zoo.states.FeelingOfSatiety;
 
 import java.util.Date;
 
+import static org.junit.Assert.*;
+
 /**
  * Created by dueerkopra on 10.04.2015.
  */
@@ -28,9 +28,6 @@ import java.util.Date;
 @SpringApplicationConfiguration(classes = ZooEventLogApp.class)
 @ActiveProfiles(profiles = "unittest")
 public class FeedAnimalAggregateTest {
-
-  @Autowired
-  private AggregateLoader aggregateLoader;
 
   @Autowired
   private AnimalService animalService;
@@ -49,118 +46,105 @@ public class FeedAnimalAggregateTest {
   @Test
   public void notBecomingFullerThanFull() throws Exception {
 
-    Date oldTimestamp = new Date();
-    eventLogRepository.save(new EventLogEntry("Elephant#1", 1L, "Bought", oldTimestamp));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 0L, new Date()));
 
-    AnimalAggregate elephant1 = aggregateLoader.replayFromOrigin("Elephant#1", eventStore);
+    AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", eventStore);
 
-    Assert.assertEquals("Elephant#1", elephant1.getId());
-    Assert.assertEquals(oldTimestamp, elephant1.getTimestamp());
-    Assert.assertTrue(elephant1.isExisting());
+    assertEquals("Elephant#1", elephant1.getId());
+    assertTrue(elephant1.isExisting());
 
     //Starts always with full
-    Assert.assertEquals(FeelingOfSatiety.full, elephant1.getFeelingOfSatiety());
+    assertEquals(FeelingOfSatiety.full, elephant1.getFeelingOfSatiety());
 
-    Date newTimestamp = new Date(oldTimestamp.getTime() + 1);
-    animalService.feed(new Feed(elephant1.getId(), 2L));
-    AnimalAggregate newState = aggregateLoader.replayFromOrigin(elephant1.getId(), eventStore);
+    animalService.feed(new Feed(elephant1.getId(), 1L));
+    AnimalAggregate newState = AggregateLoader.replayFromOrigin(elephant1.getId(), eventStore);
 
-    Assert.assertEquals("Elephant#1", newState.getId());
-    Assert.assertEquals(newTimestamp, newState.getTimestamp());
-    Assert.assertTrue(newState.isExisting());
+    assertEquals("Elephant#1", newState.getId());
+    assertTrue(newState.isExisting());
 
     //QED: Animal still full (not fuller than full)
-    Assert.assertEquals(FeelingOfSatiety.full, newState.getFeelingOfSatiety());
+    assertEquals(FeelingOfSatiety.full, newState.getFeelingOfSatiety());
   }
 
   @Test
   public void becomingFullAgain() throws Exception {
 
-    Date firstTimestamp = new Date();
-    Date secondTimestamp = new Date(firstTimestamp.getTime() + 1);
-    eventLogRepository.save(new EventLogEntry("Bought", "Elephant#1", firstTimestamp));
-    eventLogRepository.save(new EventLogEntry("Digested", "Elephant#1", secondTimestamp));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 0L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", "Digested", 1L, new Date()));
 
-    AnimalAggregate elephant1 = aggregateLoader.replayFromOrigin("Elephant#1");
+    AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", eventStore);
 
-    Assert.assertEquals("Elephant#1", elephant1.getId());
-    Assert.assertEquals(secondTimestamp, elephant1.getTimestamp());
-    Assert.assertTrue(elephant1.isExisting());
+    assertEquals("Elephant#1", elephant1.getId());
+    assertTrue(elephant1.isExisting());
 
     //Animal is hungry because of digestion
-    Assert.assertEquals(FeelingOfSatiety.hungry, elephant1.getFeelingOfSatiety());
+    assertEquals(FeelingOfSatiety.hungry, elephant1.getFeelingOfSatiety());
 
-    Date thirdTimestamp = new Date(firstTimestamp.getTime() + 1);
-    animalService.feed(new Feed(elephant1.getId(), thirdTimestamp));
-    AnimalAggregate newState = aggregateLoader.replayFromOrigin(elephant1.getId());
+    animalService.feed(new Feed(elephant1.getId(), 2L));
+    AnimalAggregate newState = AggregateLoader.replayFromOrigin(elephant1.getId(), eventStore);
 
-    Assert.assertEquals("Elephant#1", newState.getId());
-    Assert.assertEquals(thirdTimestamp, newState.getTimestamp());
-    Assert.assertTrue(newState.isExisting());
+    assertEquals("Elephant#1", newState.getId());
+    assertTrue(newState.isExisting());
 
     //QED: Animal full again because it was being fed
-    Assert.assertEquals(FeelingOfSatiety.full, newState.getFeelingOfSatiety());
+    assertEquals(FeelingOfSatiety.full, newState.getFeelingOfSatiety());
   }
 
   @Test
   public void noFeedingAfterDeath() throws Exception {
 
-    Date firstTimestamp = new Date();
-    Date secondTimestamp = new Date(firstTimestamp.getTime() + 3);
-    eventLogRepository.save(new EventLogEntry("Bought", "Elephant#1", firstTimestamp));
-    eventLogRepository.save(new EventLogEntry("Digested", "Elephant#1", new Date(firstTimestamp.getTime() + 1)));
-    eventLogRepository.save(new EventLogEntry("Digested", "Elephant#1", new Date(firstTimestamp.getTime() + 2)));
-    eventLogRepository.save(new EventLogEntry("Died", "Elephant#1", secondTimestamp));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 0L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1","Digested", 1L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", "Digested", 2L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", "Died", 3L, new Date()));
 
-    AnimalAggregate elephant1 = aggregateLoader.replayFromOrigin("Elephant#1");
+    AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", eventStore);
 
-    Assert.assertEquals("Elephant#1", elephant1.getId());
-    Assert.assertEquals(secondTimestamp, elephant1.getTimestamp());
-    Assert.assertEquals(FeelingOfSatiety.starving, elephant1.getFeelingOfSatiety());
+    assertEquals("Elephant#1", elephant1.getId());
+    assertEquals(new Long(3L), elephant1.getSequenceId());
+    assertEquals(FeelingOfSatiety.starving, elephant1.getFeelingOfSatiety());
 
     //Animal is dead because it digested too much
-    Assert.assertFalse(elephant1.isExisting());
+    assertFalse(elephant1.isExisting());
 
     //Trying to feed a dead animal
+    Feed feed = new Feed(elephant1.getId(), 4L);
     try {
-      animalService.feed(new Feed(elephant1.getId(), new Date(secondTimestamp.getTime() + 1)));
-      Assert.fail(String.format("Expected exception: %s", AnimalAlreadyThereException.class));
+      animalService.feed(feed);
+      fail(String.format("Expected exception: %s", NoSuchAnimalException.class));
     } catch (NoSuchAnimalException e) {
       // QED: Animal does not exist anymore
-      Assert.assertEquals(e.getMessage(), elephant1.getId());
+      assertEquals(e.getMessage(), feed.toString());
     }
   }
 
   @Test
   public void becomingHungryAfterStarving() throws Exception {
 
-    Date firstTimestamp = new Date();
-    Date secondTimestamp = new Date(firstTimestamp.getTime() + 2);
-    eventLogRepository.save(new EventLogEntry("Bought", "Leopard#1", firstTimestamp));
-    eventLogRepository.save(new EventLogEntry("Digested", "Leopard#1", new Date(firstTimestamp.getTime() + 1)));
-    eventLogRepository.save(new EventLogEntry("Digested", "Leopard#1", secondTimestamp));
+    eventLogRepository.save(new EventLogEntry("Leopard#1", "Bought", 0L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Leopard#1", "Digested", 1L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Leopard#1", "Digested", 2L, new Date()));
 
-    AnimalAggregate leopard1 = aggregateLoader.replayFromOrigin("Leopard#1");
+    AnimalAggregate leopard1 = AggregateLoader.replayFromOrigin("Leopard#1", eventStore);
 
-    Assert.assertEquals("Leopard#1", leopard1.getId());
-    Assert.assertEquals(secondTimestamp, leopard1.getTimestamp());
-    Assert.assertTrue(leopard1.isExisting());
+    assertEquals("Leopard#1", leopard1.getId());
+    assertEquals(new Long(2L), leopard1.getSequenceId());
+    assertTrue(leopard1.isExisting());
 
     //Animal is dead because it digested too much
-    Assert.assertEquals(FeelingOfSatiety.starving, leopard1.getFeelingOfSatiety());
+    assertEquals(FeelingOfSatiety.starving, leopard1.getFeelingOfSatiety());
 
     //Feed the leopard
-    Date thirdTimestamp = new Date(secondTimestamp.getTime() + 1);
-    animalService.feed(new Feed(leopard1.getId(), thirdTimestamp));
+    animalService.feed(new Feed(leopard1.getId(), 3L));
 
-    AnimalAggregate newState = aggregateLoader.replayFromOrigin(leopard1.getId());
+    AnimalAggregate newState = AggregateLoader.replayFromOrigin(leopard1.getId(), eventStore);
 
-    Assert.assertEquals("Leopard#1", newState.getId());
-    Assert.assertEquals(thirdTimestamp, newState.getTimestamp());
-    Assert.assertTrue(newState.isExisting());
+    assertEquals("Leopard#1", newState.getId());
+    assertEquals(new Long(3L), newState.getSequenceId());
+    assertTrue(newState.isExisting());
 
     //QED: Animal still hungry again it was being fed when it was starving before.
-    Assert.assertEquals(FeelingOfSatiety.hungry, newState.getFeelingOfSatiety());
+    assertEquals(FeelingOfSatiety.hungry, newState.getFeelingOfSatiety());
 
   }
 

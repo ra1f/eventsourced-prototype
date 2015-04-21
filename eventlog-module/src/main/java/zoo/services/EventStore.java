@@ -38,8 +38,7 @@ public class EventStore {
 
     events.getEvents().stream().forEach(
         event -> eventLogRepository.save(new EventLogEntry(event.getAnimalId(),
-            event.getSequenceId(),
-            event.getClass().getSimpleName(),
+            event.getClass().getSimpleName(), event.getSequenceId(),
             new Date())));
 
     if (!events.getEvents().isEmpty()) publishSubject.onNext(events);

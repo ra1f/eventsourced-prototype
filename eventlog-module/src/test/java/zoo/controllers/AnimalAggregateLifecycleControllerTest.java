@@ -1,6 +1,5 @@
 package zoo.controllers;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 
+import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -63,7 +63,7 @@ public class AnimalAggregateLifecycleControllerTest {
     this.mappingJackson2HttpMessageConverter = Arrays.asList(converters).stream().filter(
         hmc -> hmc instanceof MappingJackson2HttpMessageConverter).findAny().get();
 
-    Assert.assertNotNull("the JSON message converter must not be null",
+    assertNotNull("the JSON message converter must not be null",
         this.mappingJackson2HttpMessageConverter);
   }
 
@@ -76,8 +76,7 @@ public class AnimalAggregateLifecycleControllerTest {
   @Test
   public void successfulBuyCommand() throws Exception {
 
-    Date timestamp = new Date();
-    Buy command = new Buy("Tiger#1", timestamp);
+    Buy command = new Buy("Tiger#1");
     mockMvc.perform(put("/buy")
         .content(this.json(command))
         .contentType(contentType))
@@ -88,12 +87,12 @@ public class AnimalAggregateLifecycleControllerTest {
     Collection<EventLogEntry> eventLogs =
         eventLogRepository.findById("Tiger#1", new Sort(Sort.Direction.ASC, "occurence"));
 
-    Assert.assertEquals(1, eventLogs.size());
+    assertEquals(1, eventLogs.size());
 
     eventLogs.stream().forEach(eventLogEntry -> {
-      Assert.assertEquals("Bought", eventLogEntry.getEvent());
-      Assert.assertEquals("Tiger#1", eventLogEntry.getAnimalId());
-      Assert.assertEquals(timestamp, eventLogEntry.getOccurence());
+      assertEquals("Bought", eventLogEntry.getEvent());
+      assertEquals("Tiger#1", eventLogEntry.getId());
+      assertEquals(new Long(0L), eventLogEntry.getSequenceId());
     });
   }
 
@@ -101,9 +100,9 @@ public class AnimalAggregateLifecycleControllerTest {
   public void unsuccessfulBuyCommand() throws Exception {
 
     Date timestamp = new Date();
-    eventLogRepository.save(new EventLogEntry("Bought", "Tiger#2", timestamp));
+    eventLogRepository.save(new EventLogEntry("Tiger#2", "Bought", 1L, timestamp));
 
-    Buy command = new Buy("Tiger#2", new Date(timestamp.getTime() + 1));
+    Buy command = new Buy("Tiger#2", 2L);
     mockMvc.perform(put("/buy")
         .content(this.json(command))
         .contentType(contentType))
@@ -114,12 +113,13 @@ public class AnimalAggregateLifecycleControllerTest {
     Collection<EventLogEntry> eventLogs =
         eventLogRepository.findById("Tiger#2", new Sort(Sort.Direction.ASC, "occurence"));
 
-    Assert.assertEquals(1, eventLogs.size());
+    assertEquals(1, eventLogs.size());
 
     eventLogs.stream().forEach(eventLogEntry -> {
-      Assert.assertEquals("Bought", eventLogEntry.getEvent());
-      Assert.assertEquals("Tiger#2", eventLogEntry.getAnimalId());
-      Assert.assertEquals(timestamp, eventLogEntry.getOccurence());
+      assertEquals("Bought", eventLogEntry.getEvent());
+      assertEquals("Tiger#2", eventLogEntry.getId());
+      assertEquals(new Long(1L), eventLogEntry.getSequenceId());
+      assertEquals(timestamp, eventLogEntry.getOccurence());
     });
   }
 

@@ -5,6 +5,7 @@ import zoo.states.Hygiene;
 import zoo.states.Mindstate;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -13,7 +14,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name="zoo")
-public class Animal {
+public class Animal implements Serializable {
 
   @Id
   @Column(name="animal_id")
@@ -94,7 +95,7 @@ public class Animal {
   /**
    * Hibernate constructor
    */
-  protected Animal() {}
+  public Animal() {}
 
   public String getAnimalId() {
     return animalId;
@@ -122,6 +123,34 @@ public class Animal {
 
   public Integer getVersion() {
     return version;
+  }
+
+  public void setAnimalId(String animalId) {
+    this.animalId = animalId;
+  }
+
+  public void setSequenceId(Long sequenceId) {
+    this.sequenceId = sequenceId;
+  }
+
+  public void setLastOccurence(Date lastOccurence) {
+    this.lastOccurence = lastOccurence;
+  }
+
+  public void setFeelingOfSatiety(FeelingOfSatiety feelingOfSatiety) {
+    this.feelingOfSatiety = feelingOfSatiety;
+  }
+
+  public void setMindstate(Mindstate mindstate) {
+    this.mindstate = mindstate;
+  }
+
+  public void setHygiene(Hygiene hygiene) {
+    this.hygiene = hygiene;
+  }
+
+  public void setVersion(Integer version) {
+    this.version = version;
   }
 
   @Override
