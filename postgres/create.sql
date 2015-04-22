@@ -1,12 +1,13 @@
 CREATE TABLE eventlog (\
-  id bigint NOT NULL,\
+  agg_id varchar(80) NOT NULL,\
+  seq_id bigint NOT NULL,\
   event varchar(80) NOT NULL,\
-  animal_id varchar(80) NOT NULL,\
   occurence timestamp NOT NULL,\
-  PRIMARY KEY(id)\
+  PRIMARY KEY(agg_id, seq_id)\
 );
 CREATE TABLE zoo (\
   animal_id varchar(80) NOT NULL,\
+  seq_id bigint NOT NULL,\
   last_occurence timestamp NOT NULL,\
   feeling_of_satiety varchar(40) NOT NULL,\
   mindstate varchar(40) NOT NULL,\
@@ -14,11 +15,5 @@ CREATE TABLE zoo (\
   optlock integer NOT NULL,\
   PRIMARY KEY (animal_id)\
 );
-CREATE UNIQUE INDEX eventsourced_occurence_idx ON eventlog (occurence);
-CREATE SEQUENCE hibernate_sequence\
-    START WITH 1\
-    INCREMENT BY 1\
-    NO MINVALUE\
-    NO MAXVALUE\
-    CACHE 1;
+--CREATE INDEX eventsourced_agg_id_idx ON eventlog (agg_id);
 

@@ -30,8 +30,32 @@ Change directory to the mount point:
 
 ## REST requests
 
->curl -H "Content-Type: application/json" -d '[{"command":"Digest", "animalId":"Lions", "timestamp":"2015-03-31T14:17:01.123-0700"}]' http://localhost:8080/commands
+Zookeeper: Buy a new animal
+>$ curl -H "Content-Type: application/json" -X PUT -d '{"animalId":"Lion"}' http://localhost:8080/buy
 
->curl -H "Content-Type: application/json" -d '[{"command":"Digest", "animalId":"Lions", "timestamp":"2015-03-31T14:17:01.123-0700"},
-{"command":"Sadden", "animalId":"Monkeys", "timestamp":1400000000000}]' http://localhost:8080/commands
+>{"sequenceId":0}
+
+Mother Nature: Digest
+>$ curl -i -H "Content-Type: application/json" -X PUT -d '{"animalId":"Lion", "sequenceId": 1}' http://localhost:8080/digest
+
+>{"sequenceId":1}
+
+Ask for state: Animal is hungry now
+$ curl -H "Content-Type: application/json" -X GET http://localhost:8080/animals/Lion
+
+>{"animalId":"Lion","sequenceId":1,"lastOccurence":1429709244114,"feelingOfSatiety":"hungry","mindstate":"happy","hygiene":"tidy","version":1}
+
+Zookeeper: Feed the animal
+>$ curl -i -H "Content-Type: application/json" -X PUT -d '{"animalId":"Lion", "sequenceId": 2}' http://localhost:8080/feed
+
+>{"sequenceId":2}
+
+Ask for state: Animal is full again
+$ curl -H "Content-Type: application/json" -X GET http://localhost:8080/animals/Lion
+
+>{"animalId":"Lion","sequenceId":1,"lastOccurence":1429709251222,"feelingOfSatiety":"full","mindstate":"happy","hygiene":"tidy","version":2}
+
+
+
+
 

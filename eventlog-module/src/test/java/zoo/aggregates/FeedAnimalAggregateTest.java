@@ -46,7 +46,7 @@ public class FeedAnimalAggregateTest {
   @Test
   public void notBecomingFullerThanFull() throws Exception {
 
-    eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 0L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", 0L, "Bought", new Date()));
 
     AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", 1L, eventStore);
 
@@ -69,8 +69,8 @@ public class FeedAnimalAggregateTest {
   @Test
   public void becomingFullAgain() throws Exception {
 
-    eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 0L, new Date()));
-    eventLogRepository.save(new EventLogEntry("Elephant#1", "Digested", 1L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", 0L, "Bought", new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", 1L, "Digested", new Date()));
 
     AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", 2L, eventStore);
 
@@ -93,10 +93,10 @@ public class FeedAnimalAggregateTest {
   @Test
   public void noFeedingAfterDeath() throws Exception {
 
-    eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 0L, new Date()));
-    eventLogRepository.save(new EventLogEntry("Elephant#1","Digested", 1L, new Date()));
-    eventLogRepository.save(new EventLogEntry("Elephant#1", "Digested", 2L, new Date()));
-    eventLogRepository.save(new EventLogEntry("Elephant#1", "Died", 3L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", 0L, "Bought", new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", 1L, "Digested", new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", 2L, "Digested", new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", 3L, "Died", new Date()));
 
     AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", 4L, eventStore);
 
@@ -121,9 +121,9 @@ public class FeedAnimalAggregateTest {
   @Test
   public void becomingHungryAfterStarving() throws Exception {
 
-    eventLogRepository.save(new EventLogEntry("Leopard#1", "Bought", 0L, new Date()));
-    eventLogRepository.save(new EventLogEntry("Leopard#1", "Digested", 1L, new Date()));
-    eventLogRepository.save(new EventLogEntry("Leopard#1", "Digested", 2L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Leopard#1", 0L, "Bought", new Date()));
+    eventLogRepository.save(new EventLogEntry("Leopard#1", 1L, "Digested", new Date()));
+    eventLogRepository.save(new EventLogEntry("Leopard#1", 2L, "Digested", new Date()));
 
     AnimalAggregate leopard1 = AggregateLoader.replayFromOrigin("Leopard#1", 4L, eventStore);
 

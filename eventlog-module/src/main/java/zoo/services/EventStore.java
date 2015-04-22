@@ -13,6 +13,7 @@ import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import zoo.dto.Events;
 import zoo.events.Event;
+import zoo.exceptions.NotIdempotentException;
 import zoo.persistence.EventLogEntry;
 import zoo.persistence.EventLogRepository;
 
@@ -36,14 +37,13 @@ public class EventStore {
   private Observable<Events> observable = publishSubject.observeOn(Schedulers.newThread());
 
   /**
-   *
    * @param events
    * @return sequenceId
    */
-  public void save(Events<Event> events) {
+  public void save(Events<Event> events) throws NotIdempotentException {
 
     ArrayList<Event> remainingEvents = new ArrayList<>();
-    for (Event event: events.getEvents()) {
+    for (Event event : events.getEvents()) {
       try {
         eventLogRepository.insert(event.getAnimalId(),
             event.getSequenceId(),
@@ -52,6 +52,7 @@ public class EventStore {
         remainingEvents.add(event);
       } catch (DataIntegrityViolationException e) {
         logger.info(String.format("%s already persisted in eventstore", event));
+        checkIdempotency(event);
       }
     }
 
@@ -67,6 +68,17 @@ public class EventStore {
 
   public Subscription subscribe(Action1<Events> onNext) {
     return observable.subscribe(onNext);
+  }
+
+  private void checkIdempotency(Event event) throws NotIdempotentException {
+    EventLogEntry eventLogEntry = eventLogRepository.findOne(
+        new EventLogEntry.PrimaryKey(
+            event.getAnimalId(),
+            event.getSequenceId()));
+
+    if (eventLogEntry != null && !event.getClass().getSimpleName().equals(eventLogEntry.getEvent())) {
+      throw new NotIdempotentException("There is already such an event but with different payload");
+    }
   }
 
 }

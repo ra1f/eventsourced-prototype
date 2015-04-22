@@ -7,6 +7,7 @@ import zoo.commands.*;
 import zoo.dto.Events;
 import zoo.events.Event;
 import zoo.exceptions.AggregateLoadException;
+import zoo.exceptions.NotIdempotentException;
 import zoo.exceptions.ZooException;
 
 import static zoo.services.AggregateLoader.replayFromOrigin;
@@ -20,7 +21,7 @@ public class AnimalService {
   @Autowired
   private EventStore eventStore;
 
-  public Long buy(Buy buy) throws AggregateLoadException, ZooException {
+  public Long buy(Buy buy) throws AggregateLoadException, ZooException, NotIdempotentException {
     AnimalAggregate animalAggregate = replay(buy.getAnimalId(), buy.getSequenceId());
     Events<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
     if (!events.getEvents().isEmpty()) {
@@ -29,7 +30,7 @@ public class AnimalService {
     return events.getSequenceId();
   }
 
-  public Long sell(Sell sell) throws AggregateLoadException, ZooException {
+  public Long sell(Sell sell) throws AggregateLoadException, ZooException, NotIdempotentException {
     AnimalAggregate animalAggregate = replay(sell.getAnimalId(), sell.getSequenceId());
     Events<Event> events = animalAggregate.asSellCommandHandler().handleCommand(sell);
     if (!events.getEvents().isEmpty()) {
@@ -38,7 +39,7 @@ public class AnimalService {
     return events.getSequenceId();
   }
 
-  public Long feed(Feed feed) throws AggregateLoadException, ZooException {
+  public Long feed(Feed feed) throws AggregateLoadException, ZooException, NotIdempotentException {
     AnimalAggregate animalAggregate = replay(feed.getAnimalId(), feed.getSequenceId());
     Events<Event> events = animalAggregate.asFeedCommandHandler().handleCommand(feed);
     if (!events.getEvents().isEmpty()) {
@@ -47,7 +48,7 @@ public class AnimalService {
     return events.getSequenceId();
   }
 
-  public Long digest(Digest digest) throws AggregateLoadException, ZooException {
+  public Long digest(Digest digest) throws AggregateLoadException, ZooException, NotIdempotentException {
     AnimalAggregate animalAggregate = replay(digest.getAnimalId(), digest.getSequenceId());
     Events<Event> events = animalAggregate.asDigestCommandHandler().handleCommand(digest);
     if (!events.getEvents().isEmpty()) {
@@ -56,7 +57,7 @@ public class AnimalService {
     return events.getSequenceId();
   }
 
-  public Long play(Play play) throws AggregateLoadException, ZooException {
+  public Long play(Play play) throws AggregateLoadException, ZooException, NotIdempotentException {
     AnimalAggregate animalAggregate = replay(play.getAnimalId(), play.getSequenceId());
     Events<Event> events = animalAggregate.asPlayCommandHandler().handleCommand(play);
     if (!events.getEvents().isEmpty()) {
@@ -65,7 +66,7 @@ public class AnimalService {
     return events.getSequenceId();
   }
 
-  public Long sadden(Sadden sadden) throws AggregateLoadException, ZooException {
+  public Long sadden(Sadden sadden) throws AggregateLoadException, ZooException, NotIdempotentException {
     AnimalAggregate animalAggregate = replay(sadden.getAnimalId(), sadden.getSequenceId());
     Events<Event> events = animalAggregate.asSaddenCommandHandler().handleCommand(sadden);
     if (!events.getEvents().isEmpty()) {

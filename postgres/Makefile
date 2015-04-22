@@ -8,7 +8,7 @@ all:
 	@echo "make stop-postgres -- stop postgres database"
 	@echo "make clean-images -- cleans docker images"
 
-build_image:
+build-image:
 	@echo "+++ Starting image creation +++"
 	@docker build -t ra1f/postgres .
 	@docker images

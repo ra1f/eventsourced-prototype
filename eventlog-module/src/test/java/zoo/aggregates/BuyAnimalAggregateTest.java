@@ -80,7 +80,7 @@ public class BuyAnimalAggregateTest {
   @Test
   public void cannotBeBoughtAfterAlreadyBeingBought() throws Exception {
 
-    eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 0L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", 0L, "Bought", new Date()));
 
     AnimalAggregate animalAggregate = replayFromOrigin("Elephant#1", 1L, eventStore);
 

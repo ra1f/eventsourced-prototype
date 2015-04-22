@@ -46,7 +46,7 @@ public class EventLogEntry implements Serializable {
 
   protected EventLogEntry() {}
 
-  public EventLogEntry(String id, String event, Long sequenceId, Date occurence) {
+  public EventLogEntry(String id, Long sequenceId, String event, Date occurence) {
     this.id = id;
     this.sequenceId = sequenceId;
     this.event = event;

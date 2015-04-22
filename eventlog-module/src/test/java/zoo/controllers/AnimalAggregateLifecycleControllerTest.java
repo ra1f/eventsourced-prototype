@@ -101,7 +101,7 @@ public class AnimalAggregateLifecycleControllerTest {
   public void unsuccessfulBuyCommand() throws Exception {
 
     Date timestamp = new Date();
-    eventLogRepository.save(new EventLogEntry("Tiger#2", "Bought", 0L, timestamp));
+    eventLogRepository.save(new EventLogEntry("Tiger#2", 0L, "Bought", timestamp));
 
     Buy command = new Buy("Tiger#2", 1L);
     mockMvc.perform(put("/buy")
