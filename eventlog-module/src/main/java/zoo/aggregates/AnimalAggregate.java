@@ -11,8 +11,10 @@ import zoo.states.FeelingOfSatiety;
 import zoo.states.Hygiene;
 import zoo.states.Mindstate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by dueerkopra on 07.04.2015.
@@ -119,13 +121,14 @@ public class AnimalAggregate extends Aggregate {
       public Events<Event> handleCommand(Digest command) throws ZooException {
         validateSequence(command);
         validateExistence(command);
-        Event event = new Digested(command.getAnimalId(), command.getSequenceId());
+        List<Event> events = new ArrayList<>();
+        events.add(new Digested(command.getAnimalId(), command.getSequenceId()));
         if (feelingOfSatiety.isWorst()) {
-          event = new Died(command.getAnimalId(), command.getSequenceId());
+          events.add(new Died(command.getAnimalId(), command.getSequenceId() + 1));
         }
         return new Events(command.getAnimalId(),
-            command.getSequenceId(),
-            Arrays.asList(event));
+            command.getSequenceId() - 1 + events.size(),
+            events);
       }
     };
   }
@@ -149,12 +152,14 @@ public class AnimalAggregate extends Aggregate {
       public Events<Event> handleCommand(Sadden command) throws ZooException {
         validateSequence(command);
         validateExistence(command);
-        Event event = new Saddened(command.getAnimalId(), command.getSequenceId());
+        List<Event> events = new ArrayList<>();
+        events.add(new Saddened(command.getAnimalId(), command.getSequenceId()));
         if (mindstate.isWorst()) {
-          event = new Died(command.getAnimalId(), command.getSequenceId());
+          events.add(new Died(command.getAnimalId(), command.getSequenceId() + 1));
         }
         return new Events(command.getAnimalId(),
-            command.getSequenceId(), Arrays.asList(event));
+            command.getSequenceId() - 1 + events.size(),
+            events);
       }
     };
   }
