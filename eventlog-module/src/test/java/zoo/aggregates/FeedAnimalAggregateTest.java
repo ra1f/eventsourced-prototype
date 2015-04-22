@@ -48,7 +48,7 @@ public class FeedAnimalAggregateTest {
 
     eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 0L, new Date()));
 
-    AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", eventStore);
+    AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", 1L, eventStore);
 
     assertEquals("Elephant#1", elephant1.getId());
     assertTrue(elephant1.isExisting());
@@ -57,7 +57,7 @@ public class FeedAnimalAggregateTest {
     assertEquals(FeelingOfSatiety.full, elephant1.getFeelingOfSatiety());
 
     animalService.feed(new Feed(elephant1.getId(), 1L));
-    AnimalAggregate newState = AggregateLoader.replayFromOrigin(elephant1.getId(), eventStore);
+    AnimalAggregate newState = AggregateLoader.replayFromOrigin(elephant1.getId(), 2L, eventStore);
 
     assertEquals("Elephant#1", newState.getId());
     assertTrue(newState.isExisting());
@@ -72,7 +72,7 @@ public class FeedAnimalAggregateTest {
     eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 0L, new Date()));
     eventLogRepository.save(new EventLogEntry("Elephant#1", "Digested", 1L, new Date()));
 
-    AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", eventStore);
+    AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", 2L, eventStore);
 
     assertEquals("Elephant#1", elephant1.getId());
     assertTrue(elephant1.isExisting());
@@ -81,7 +81,7 @@ public class FeedAnimalAggregateTest {
     assertEquals(FeelingOfSatiety.hungry, elephant1.getFeelingOfSatiety());
 
     animalService.feed(new Feed(elephant1.getId(), 2L));
-    AnimalAggregate newState = AggregateLoader.replayFromOrigin(elephant1.getId(), eventStore);
+    AnimalAggregate newState = AggregateLoader.replayFromOrigin(elephant1.getId(), 3L, eventStore);
 
     assertEquals("Elephant#1", newState.getId());
     assertTrue(newState.isExisting());
@@ -98,7 +98,7 @@ public class FeedAnimalAggregateTest {
     eventLogRepository.save(new EventLogEntry("Elephant#1", "Digested", 2L, new Date()));
     eventLogRepository.save(new EventLogEntry("Elephant#1", "Died", 3L, new Date()));
 
-    AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", eventStore);
+    AnimalAggregate elephant1 = AggregateLoader.replayFromOrigin("Elephant#1", 4L, eventStore);
 
     assertEquals("Elephant#1", elephant1.getId());
     assertEquals(new Long(3L), elephant1.getSequenceId());
@@ -125,7 +125,7 @@ public class FeedAnimalAggregateTest {
     eventLogRepository.save(new EventLogEntry("Leopard#1", "Digested", 1L, new Date()));
     eventLogRepository.save(new EventLogEntry("Leopard#1", "Digested", 2L, new Date()));
 
-    AnimalAggregate leopard1 = AggregateLoader.replayFromOrigin("Leopard#1", eventStore);
+    AnimalAggregate leopard1 = AggregateLoader.replayFromOrigin("Leopard#1", 4L, eventStore);
 
     assertEquals("Leopard#1", leopard1.getId());
     assertEquals(new Long(2L), leopard1.getSequenceId());
@@ -137,7 +137,7 @@ public class FeedAnimalAggregateTest {
     //Feed the leopard
     animalService.feed(new Feed(leopard1.getId(), 3L));
 
-    AnimalAggregate newState = AggregateLoader.replayFromOrigin(leopard1.getId(), eventStore);
+    AnimalAggregate newState = AggregateLoader.replayFromOrigin(leopard1.getId(), 5L, eventStore);
 
     assertEquals("Leopard#1", newState.getId());
     assertEquals(new Long(3L), newState.getSequenceId());

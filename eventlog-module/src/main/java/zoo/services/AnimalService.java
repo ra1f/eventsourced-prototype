@@ -21,7 +21,7 @@ public class AnimalService {
   private EventStore eventStore;
 
   public Long buy(Buy buy) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = replay(buy.getAnimalId());
+    AnimalAggregate animalAggregate = replay(buy.getAnimalId(), buy.getSequenceId());
     Events<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
     if (!events.getEvents().isEmpty()) {
       eventStore.save(events);
@@ -30,7 +30,7 @@ public class AnimalService {
   }
 
   public Long sell(Sell sell) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = replay(sell.getAnimalId());
+    AnimalAggregate animalAggregate = replay(sell.getAnimalId(), sell.getSequenceId());
     Events<Event> events = animalAggregate.asSellCommandHandler().handleCommand(sell);
     if (!events.getEvents().isEmpty()) {
       eventStore.save(events);
@@ -39,7 +39,7 @@ public class AnimalService {
   }
 
   public Long feed(Feed feed) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = replay(feed.getAnimalId());
+    AnimalAggregate animalAggregate = replay(feed.getAnimalId(), feed.getSequenceId());
     Events<Event> events = animalAggregate.asFeedCommandHandler().handleCommand(feed);
     if (!events.getEvents().isEmpty()) {
       eventStore.save(events);
@@ -48,7 +48,7 @@ public class AnimalService {
   }
 
   public Long digest(Digest digest) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = replay(digest.getAnimalId());
+    AnimalAggregate animalAggregate = replay(digest.getAnimalId(), digest.getSequenceId());
     Events<Event> events = animalAggregate.asDigestCommandHandler().handleCommand(digest);
     if (!events.getEvents().isEmpty()) {
       eventStore.save(events);
@@ -57,7 +57,7 @@ public class AnimalService {
   }
 
   public Long play(Play play) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = replay(play.getAnimalId());
+    AnimalAggregate animalAggregate = replay(play.getAnimalId(), play.getSequenceId());
     Events<Event> events = animalAggregate.asPlayCommandHandler().handleCommand(play);
     if (!events.getEvents().isEmpty()) {
       eventStore.save(events);
@@ -66,7 +66,7 @@ public class AnimalService {
   }
 
   public Long sadden(Sadden sadden) throws AggregateLoadException, ZooException {
-    AnimalAggregate animalAggregate = replay(sadden.getAnimalId());
+    AnimalAggregate animalAggregate = replay(sadden.getAnimalId(), sadden.getSequenceId());
     Events<Event> events = animalAggregate.asSaddenCommandHandler().handleCommand(sadden);
     if (!events.getEvents().isEmpty()) {
       eventStore.save(events);
@@ -82,8 +82,8 @@ public class AnimalService {
     throw new ZooException("Not implemented");
   }
 
-  private AnimalAggregate replay(String id) throws AggregateLoadException {
-    return replayFromOrigin(id, eventStore);
+  private AnimalAggregate replay(String id, Long sequenceId) throws AggregateLoadException {
+    return replayFromOrigin(id, sequenceId, eventStore);
   }
 
 

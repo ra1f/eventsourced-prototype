@@ -143,12 +143,11 @@ public class ViewQueryControllerTest {
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
-        .andExpect(jsonPath("$.success", is(true)))
         .andExpect(jsonPath("$.sequenceId", is(0)));
 
     Thread.sleep(1000);
 
-    // What did we buy
+    // What did we buy? Hopefully a kangaroo within best shape.
     mockMvc.perform(get("/animals/Kangaroo")
         .accept(contentType))
         .andExpect(status().isOk())
@@ -165,7 +164,6 @@ public class ViewQueryControllerTest {
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
-        .andExpect(jsonPath("$.success", is(true)))
         .andExpect(jsonPath("$.sequenceId", is(1)));
 
     Thread.sleep(1000);
@@ -187,7 +185,6 @@ public class ViewQueryControllerTest {
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
-        .andExpect(jsonPath("$.success", is(true)))
         .andExpect(jsonPath("$.sequenceId", is(2)));
 
     Thread.sleep(1000);
@@ -209,7 +206,6 @@ public class ViewQueryControllerTest {
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
-        .andExpect(jsonPath("$.success", is(true)))
         .andExpect(jsonPath("$.sequenceId", is(3)));
 
     Thread.sleep(1000);

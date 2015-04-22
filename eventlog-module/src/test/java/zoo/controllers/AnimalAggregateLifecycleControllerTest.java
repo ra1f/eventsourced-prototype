@@ -82,10 +82,11 @@ public class AnimalAggregateLifecycleControllerTest {
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
-        .andExpect(jsonPath("$.success", is(true)));
+        .andExpect(jsonPath("$.sequenceId", is(0)));
 
     Collection<EventLogEntry> eventLogs =
-        eventLogRepository.findById("Tiger#1", new Sort(Sort.Direction.ASC, "occurence"));
+        eventLogRepository.findByIdAndSequenceIdLessThan("Tiger#1", 1L,
+            new Sort(Sort.Direction.ASC, "occurence"));
 
     assertEquals(1, eventLogs.size());
 
@@ -100,25 +101,24 @@ public class AnimalAggregateLifecycleControllerTest {
   public void unsuccessfulBuyCommand() throws Exception {
 
     Date timestamp = new Date();
-    eventLogRepository.save(new EventLogEntry("Tiger#2", "Bought", 1L, timestamp));
+    eventLogRepository.save(new EventLogEntry("Tiger#2", "Bought", 0L, timestamp));
 
-    Buy command = new Buy("Tiger#2", 2L);
+    Buy command = new Buy("Tiger#2", 1L);
     mockMvc.perform(put("/buy")
         .content(this.json(command))
         .contentType(contentType))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(contentType))
-        .andExpect(jsonPath("$.success", is(false)));// Must fail because Tiger#2 is already there.
+        .andExpect(status().isBadRequest());// Must fail because Tiger#2 is already there.
 
     Collection<EventLogEntry> eventLogs =
-        eventLogRepository.findById("Tiger#2", new Sort(Sort.Direction.ASC, "occurence"));
+        eventLogRepository.findByIdAndSequenceIdLessThan("Tiger#2", 1L,
+            new Sort(Sort.Direction.ASC, "occurence"));
 
     assertEquals(1, eventLogs.size());
 
     eventLogs.stream().forEach(eventLogEntry -> {
       assertEquals("Bought", eventLogEntry.getEvent());
       assertEquals("Tiger#2", eventLogEntry.getId());
-      assertEquals(new Long(1L), eventLogEntry.getSequenceId());
+      assertEquals(new Long(0L), eventLogEntry.getSequenceId());
       assertEquals(timestamp, eventLogEntry.getOccurence());
     });
   }

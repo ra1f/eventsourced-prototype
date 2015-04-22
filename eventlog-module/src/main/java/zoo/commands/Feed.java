@@ -5,6 +5,9 @@ package zoo.commands;
  */
 public class Feed extends Command {
 
+  /**
+   * Default constructor needed for Jackson
+   */
   public Feed() {
   }
 

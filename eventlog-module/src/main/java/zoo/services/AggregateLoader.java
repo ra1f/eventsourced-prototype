@@ -60,10 +60,10 @@ public class AggregateLoader {
     }
   };
 
-  public static AnimalAggregate replayFromOrigin(String animalId, EventStore eventStore) throws AggregateLoadException {
+  public static AnimalAggregate replayFromOrigin(String aggregateId, Long sequenceId, EventStore eventStore) throws AggregateLoadException {
 
     // Are there entries within the eventlog?
-    Collection<EventLogEntry> eventLogs = eventStore.find(animalId);
+    Collection<EventLogEntry> eventLogs = eventStore.find(aggregateId, sequenceId);
     if (eventLogs.isEmpty()) {
       // If not emit his as a starting point
       return new AnimalAggregate();

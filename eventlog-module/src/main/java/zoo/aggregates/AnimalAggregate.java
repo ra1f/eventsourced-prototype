@@ -11,9 +11,7 @@ import zoo.states.FeelingOfSatiety;
 import zoo.states.Hygiene;
 import zoo.states.Mindstate;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -77,10 +75,12 @@ public class AnimalAggregate extends Aggregate {
     return new CommandHandler<Buy, Event>() {
       @Override
       public Events<Event> handleCommand(Buy command) throws ZooException {
+        validateSequence(command);
         if (existing) {
           throw new AnimalAlreadyThereException(command.toString());
         }
-        return handleIdempotency(command,
+        return new Events(command.getAnimalId(),
+            command.getSequenceId(),
             Arrays.asList(new Bought(command.getAnimalId(), command.getSequenceId())));
       }
     };
@@ -90,8 +90,10 @@ public class AnimalAggregate extends Aggregate {
     return new CommandHandler<Sell, Event>() {
       @Override
       public Events<Event> handleCommand(Sell command) throws ZooException {
+        validateSequence(command);
         validateExistence(command);
-        return handleIdempotency(command,
+        return new Events(command.getAnimalId(),
+            command.getSequenceId(),
             Arrays.asList(new Sold(command.getAnimalId(), command.getSequenceId())));
       }
     };
@@ -102,9 +104,11 @@ public class AnimalAggregate extends Aggregate {
 
       @Override
       public Events<Event> handleCommand(Feed command) throws ZooException {
+        validateSequence(command);
         validateExistence(command);
-        return handleIdempotency(
-            command, Arrays.asList(new Fed(command.getAnimalId(), command.getSequenceId())));
+        return new Events(command.getAnimalId(),
+            command.getSequenceId(),
+            Arrays.asList(new Fed(command.getAnimalId(), command.getSequenceId())));
       }
     };
   }
@@ -113,13 +117,15 @@ public class AnimalAggregate extends Aggregate {
     return new CommandHandler<Digest, Event>() {
       @Override
       public Events<Event> handleCommand(Digest command) throws ZooException {
+        validateSequence(command);
         validateExistence(command);
         Event event = new Digested(command.getAnimalId(), command.getSequenceId());
         if (feelingOfSatiety.isWorst()) {
           event = new Died(command.getAnimalId(), command.getSequenceId());
         }
-        return handleIdempotency(
-            command, Arrays.asList(event));
+        return new Events(command.getAnimalId(),
+            command.getSequenceId(),
+            Arrays.asList(event));
       }
     };
   }
@@ -128,8 +134,10 @@ public class AnimalAggregate extends Aggregate {
     return new CommandHandler<Play, Event>() {
       @Override
       public Events<Event> handleCommand(Play command) throws ZooException {
+        validateSequence(command);
         validateExistence(command);
-        return handleIdempotency(command,
+        return new Events(command.getAnimalId(),
+            command.getSequenceId(),
             Arrays.asList(new Played(command.getAnimalId(), command.getSequenceId())));
       }
     };
@@ -139,12 +147,14 @@ public class AnimalAggregate extends Aggregate {
     return new CommandHandler<Sadden, Event>() {
       @Override
       public Events<Event> handleCommand(Sadden command) throws ZooException {
+        validateSequence(command);
         validateExistence(command);
         Event event = new Saddened(command.getAnimalId(), command.getSequenceId());
         if (mindstate.isWorst()) {
           event = new Died(command.getAnimalId(), command.getSequenceId());
         }
-        return handleIdempotency(command, Arrays.asList(event));
+        return new Events(command.getAnimalId(),
+            command.getSequenceId(), Arrays.asList(event));
       }
     };
   }
@@ -262,7 +272,13 @@ public class AnimalAggregate extends Aggregate {
     }
   }
 
-  private Events<Event> handleIdempotency(Command command, Collection<Event> events) throws CommandNotInSequenceException {
+  private void validateSequence(Command command) throws CommandNotInSequenceException {
+    if (sequenceId + 1 != command.getSequenceId()) {
+      throw new CommandNotInSequenceException();
+    }
+  }
+
+  /*private Events<Event> handleIdempotency(Command command, Collection<Event> events) throws CommandNotInSequenceException {
 
     long nextSeqId = this.sequenceId + 1;
 
@@ -280,8 +296,8 @@ public class AnimalAggregate extends Aggregate {
       }
     }
 
-    Events<Event> retVal = new Events<>(command.getAnimalId(), eventsToSave, this.sequenceId + events.size());
+    Events<Event> retVal = new Events<>(command.getAnimalId(), this.sequenceId + events.size(), eventsToSave);
     return retVal;
-  }
+  }*/
 
 }

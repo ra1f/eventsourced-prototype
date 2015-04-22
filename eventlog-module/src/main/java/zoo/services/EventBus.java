@@ -18,7 +18,7 @@ import java.util.HashMap;
  * Created by dueerkopra on 14.04.2015.
  */
 @Component
-public class ViewUpdaterService implements Action1<Events> {
+public class EventBus implements Action1<Events> {
 
   @Autowired
   private EventStore eventStore;
@@ -32,7 +32,7 @@ public class ViewUpdaterService implements Action1<Events> {
 
   private HashMap<String, EventUpdateAdapter> adapterRegistry = new HashMap(11);
 
-  private static final Logger logger = LoggerFactory.getLogger(ViewUpdaterService.class);
+  private static final Logger logger = LoggerFactory.getLogger(EventBus.class);
 
   @PostConstruct
   public void init() {
@@ -45,11 +45,12 @@ public class ViewUpdaterService implements Action1<Events> {
     EventUpdateAdapter adapter = adapterRegistry.get(events.getId());
     try {
       if (adapter == null) {
-        adapter = new EventUpdateAdapter(events.getId(),
+        new EventUpdateAdapter(events.getId(),
+            events.getSequenceId(),
             eventStore,
             animalRepository,
-            observable);
-        adapterRegistry.put(events.getId(), adapter);
+            observable,
+            adapterRegistry);
       }
     } catch (Exception e) {
       logger.error("Error creating EventViewAdapter", e);

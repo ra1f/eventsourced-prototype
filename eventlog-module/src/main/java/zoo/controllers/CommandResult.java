@@ -5,23 +5,13 @@ package zoo.controllers;
  */
 public class CommandResult {
 
-  private boolean success;
+  private Long sequenceId;
 
-  private long sequenceId;
-
-  public boolean isSuccess() {
-    return success;
-  }
-
-  public void setSuccess(boolean success) {
-    this.success = success;
+  public CommandResult(Long sequenceId) {
+    this.sequenceId = sequenceId;
   }
 
   public long getSequenceId() {
     return sequenceId;
-  }
-
-  public void setSequenceId(long sequenceId) {
-    this.sequenceId = sequenceId;
   }
 }

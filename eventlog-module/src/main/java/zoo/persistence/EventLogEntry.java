@@ -15,7 +15,7 @@ public class EventLogEntry implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  static class PrimaryKey implements Serializable {
+  public static class PrimaryKey implements Serializable {
 
     private String id;
     private Long sequenceId;

@@ -5,6 +5,9 @@ package zoo.commands;
  */
 public class Buy extends Command {
 
+  /**
+   * Default constructor needed for Jackson
+   */
   public Buy() {
   }
 

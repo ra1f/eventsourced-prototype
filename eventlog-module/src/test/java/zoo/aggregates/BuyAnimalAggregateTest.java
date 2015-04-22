@@ -46,7 +46,7 @@ public class BuyAnimalAggregateTest {
   @Test
   public void justBuy() throws Exception {
 
-    AnimalAggregate animalAggregate = replayFromOrigin("Lion#1", eventStore);
+    AnimalAggregate animalAggregate = replayFromOrigin("Lion#1", 0L, eventStore);
 
     assertNull(animalAggregate.getId());
     assertNull(animalAggregate.getTimestamp());
@@ -55,9 +55,9 @@ public class BuyAnimalAggregateTest {
 
     Buy buy = new Buy("Lion#1");
     Events<Event> events = animalAggregate.asBuyCommandHandler().handleCommand(buy);
-    eventStore.save(new Events(buy.getAnimalId(), events.getEvents(), buy.getSequenceId()));
+    eventStore.save(new Events(buy.getAnimalId(), buy.getSequenceId(), events.getEvents()));
 
-    AnimalAggregate newState = replayFromOrigin("Lion#1", eventStore);
+    AnimalAggregate newState = replayFromOrigin("Lion#1", 1L, eventStore);
 
     assertEquals("Lion#1", newState.getId());
     assertEquals(0L, newState.getSequenceId().longValue());
@@ -65,7 +65,8 @@ public class BuyAnimalAggregateTest {
     assertEquals(FeelingOfSatiety.full, newState.getFeelingOfSatiety());
 
     Collection<EventLogEntry> eventLogs =
-        eventLogRepository.findById("Lion#1", new Sort(Sort.Direction.ASC, "occurence"));
+        eventLogRepository.findByIdAndSequenceIdLessThan("Lion#1", 1L,
+            new Sort(Sort.Direction.ASC, "occurence"));
 
     assertEquals(1, eventLogs.size());
 
@@ -77,13 +78,13 @@ public class BuyAnimalAggregateTest {
   }
 
   @Test
-  public void cannotBeBoughtAfterAlreadyBeeingBought() throws Exception {
+  public void cannotBeBoughtAfterAlreadyBeingBought() throws Exception {
 
-    eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 1L, new Date()));
+    eventLogRepository.save(new EventLogEntry("Elephant#1", "Bought", 0L, new Date()));
 
-    AnimalAggregate animalAggregate = replayFromOrigin("Elephant#1", eventStore);
+    AnimalAggregate animalAggregate = replayFromOrigin("Elephant#1", 1L, eventStore);
 
-    Buy buy = new Buy("Elephant#1", 2L);
+    Buy buy = new Buy("Elephant#1", 1L);
     try {
       animalAggregate.asBuyCommandHandler().handleCommand(buy);
       fail(String.format("Expected exception: %s", AnimalAlreadyThereException.class));

@@ -10,13 +10,13 @@ import java.util.Collection;
 public class Events<E extends Event> {
 
   private String id;
-  private Collection<E> events;
   private Long sequenceId;
+  private Collection<E> events;
 
-  public Events(String id, Collection<E> events, Long sequenceId) {
+  public Events(String id, Long sequenceId, Collection<E> events) {
     this.id = id;
-    this.events = events;
     this.sequenceId = sequenceId;
+    this.events = events;
   }
 
   public String getId() {

@@ -1,6 +1,9 @@
 package zoo.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import rx.Observable;
@@ -13,6 +16,7 @@ import zoo.events.Event;
 import zoo.persistence.EventLogEntry;
 import zoo.persistence.EventLogRepository;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
@@ -21,6 +25,8 @@ import java.util.Date;
  */
 @Component
 public class EventStore {
+
+  private static final Logger logger = LoggerFactory.getLogger(EventStore.class);
 
   @Autowired
   private EventLogRepository eventLogRepository;
@@ -36,16 +42,27 @@ public class EventStore {
    */
   public void save(Events<Event> events) {
 
-    events.getEvents().stream().forEach(
-        event -> eventLogRepository.save(new EventLogEntry(event.getAnimalId(),
-            event.getClass().getSimpleName(), event.getSequenceId(),
-            new Date())));
+    ArrayList<Event> remainingEvents = new ArrayList<>();
+    for (Event event: events.getEvents()) {
+      try {
+        eventLogRepository.insert(event.getAnimalId(),
+            event.getSequenceId(),
+            event.getClass().getSimpleName(),
+            new Date());
+        remainingEvents.add(event);
+      } catch (DataIntegrityViolationException e) {
+        logger.info(String.format("%s already persisted in eventstore", event));
+      }
+    }
 
-    if (!events.getEvents().isEmpty()) publishSubject.onNext(events);
+    if (!remainingEvents.isEmpty()) {
+      Events remainder = new Events(events.getId(), events.getSequenceId(), remainingEvents);
+      publishSubject.onNext(remainder);
+    }
   }
 
-  public Collection<EventLogEntry> find(String animalId) {
-    return eventLogRepository.findById(animalId, new Sort(Sort.Direction.ASC, "sequenceId"));
+  public Collection<EventLogEntry> find(String animalId, Long sequenceId) {
+    return eventLogRepository.findByIdAndSequenceIdLessThan(animalId, sequenceId, new Sort(Sort.Direction.ASC, "sequenceId"));
   }
 
   public Subscription subscribe(Action1<Events> onNext) {

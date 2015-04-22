@@ -11,6 +11,8 @@ import zoo.exceptions.AggregateLoadException;
 import zoo.persistence.Animal;
 import zoo.persistence.AnimalRepository;
 
+import java.util.Map;
+
 import static zoo.services.AggregateLoader.replayFromOrigin;
 import static zoo.services.AggregateLoader.replayFromSnapshot;
 
@@ -22,16 +24,23 @@ public class EventUpdateAdapter implements Action1<Events> {
   private String id;
   private AnimalRepository animalRepository;
   private AnimalAggregate animalAggregate;
-  boolean justMaterialized = true;
   private Subscription subscription;
+  private Map<String, EventUpdateAdapter> adapterRegistry;
 
   private static final Logger logger = LoggerFactory.getLogger(EventUpdateAdapter.class);
 
-  public EventUpdateAdapter(String id, EventStore eventStore, AnimalRepository animalRepository, Observable<Events> observable) throws AggregateLoadException {
+  public EventUpdateAdapter(String id,
+                            Long sequenceId,
+                            EventStore eventStore,
+                            AnimalRepository animalRepository,
+                            Observable<Events> observable,
+                            Map<String, EventUpdateAdapter> adapterRegistry) throws AggregateLoadException {
     this.id = id;
     this.animalRepository = animalRepository;
     subscription = observable.subscribe(this);
-    animalAggregate = replayFromOrigin(id, eventStore);
+    animalAggregate = replayFromOrigin(id, sequenceId, eventStore);
+    adapterRegistry.put(id, this);
+    this.adapterRegistry = adapterRegistry;
   }
 
   @Override
@@ -39,41 +48,21 @@ public class EventUpdateAdapter implements Action1<Events> {
 
     try {
       if (id.equals(events.getId())) {
-
-        //If this is the first invocation we must not sync here since the state is already up to date because we just
-        // materialised from event store milli seconds ago.
-        Animal animal;
-        if (!justMaterialized) {
-          animalAggregate = replayFromSnapshot(animalAggregate, events.getEvents());
-          animal = animalRepository.findOne(events.getId());
-        } else {
-          justMaterialized = false;
-          animal = new Animal();
-        }
-
-        animal = merge(animalAggregate, animal);
+        animalAggregate = replayFromSnapshot(animalAggregate, events.getEvents());
+        Animal animal = merge(animalAggregate, createAnimal(events.getId()));
         if (animalAggregate.isExisting()) {
           animalRepository.save(animal);
         } else {
           animalRepository.delete(animal);
-          subscription.unsubscribe();
+          unsubscribe();
         }
         animalRepository.flush();
       }
     } catch (Exception e) {
       logger.error("Error updating materialized view", e);
+      unsubscribe();
     }
   }
-
-  /*private Animal map(AnimalAggregate aggregate) {
-    return new Animal(aggregate.getId(),
-        aggregate.getSequenceId(),
-        aggregate.getTimestamp(),
-        aggregate.getFeelingOfSatiety(),
-        aggregate.getMindstate(),
-        aggregate.getHygiene()
-    );
-  }*/
 
   private Animal merge(AnimalAggregate aggregate, Animal animal) {
     animal.setAnimalId(aggregate.getId());
@@ -82,6 +71,19 @@ public class EventUpdateAdapter implements Action1<Events> {
     animal.setFeelingOfSatiety(aggregate.getFeelingOfSatiety());
     animal.setMindstate(aggregate.getMindstate());
     animal.setHygiene(aggregate.getHygiene());
+    return animal;
+  }
+
+  private void unsubscribe() {
+    subscription.unsubscribe();
+    this.adapterRegistry.remove(this.id);
+  }
+
+  private Animal createAnimal(String id) {
+    Animal animal = animalRepository.findOne(id);
+    if (animal == null) {
+      animal = new Animal();
+    }
     return animal;
   }
 }

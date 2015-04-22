@@ -5,6 +5,9 @@ package zoo.commands;
  */
 public class Play extends Command {
 
+  /**
+   * Default constructor needed for Jackson
+   */
   public Play() {
   }
 

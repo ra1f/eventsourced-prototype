@@ -7,14 +7,19 @@ public abstract class Command {
 
   protected String animalId;
 
-  protected Long sequenceId;
+  protected Long sequenceId = 0L;
 
+  /**
+   * Default constructor needed for Jackson
+   */
   public Command() {
   }
 
   public Command(String animalId, Long sequenceId) {
     this.animalId = animalId;
-    this.sequenceId = sequenceId;
+    if (sequenceId != null) {
+      this.sequenceId = sequenceId;
+    }
   }
 
   public String getAnimalId() {
