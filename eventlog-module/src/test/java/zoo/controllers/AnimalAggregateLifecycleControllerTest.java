@@ -10,25 +10,23 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 import zoo.ZooEventLogApp;
-import zoo.commands.Buy;
 import zoo.persistence.EventLogEntry;
 import zoo.persistence.EventLogRepository;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 
-import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -76,23 +74,21 @@ public class AnimalAggregateLifecycleControllerTest {
   @Test
   public void successfulBuyCommand() throws Exception {
 
-    Buy command = new Buy("Tiger#1");
-    mockMvc.perform(put("/buy")
-        .content(this.json(command))
+    mockMvc.perform(put("/buy/Tiger")
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
         .andExpect(jsonPath("$.sequenceId", is(0)));
 
     Collection<EventLogEntry> eventLogs =
-        eventLogRepository.findByIdAndSequenceIdLessThan("Tiger#1", 1L,
+        eventLogRepository.findByIdAndSequenceIdLessThan("Tiger", 1L,
             new Sort(Sort.Direction.ASC, "occurence"));
 
     assertEquals(1, eventLogs.size());
 
     eventLogs.stream().forEach(eventLogEntry -> {
       assertEquals("Bought", eventLogEntry.getEvent());
-      assertEquals("Tiger#1", eventLogEntry.getId());
+      assertEquals("Tiger", eventLogEntry.getId());
       assertEquals(new Long(0L), eventLogEntry.getSequenceId());
     });
   }
@@ -101,32 +97,24 @@ public class AnimalAggregateLifecycleControllerTest {
   public void unsuccessfulBuyCommand() throws Exception {
 
     Date timestamp = new Date();
-    eventLogRepository.save(new EventLogEntry("Tiger#2", 0L, "Bought", timestamp));
+    eventLogRepository.save(new EventLogEntry("Lion", 0L, "Bought", timestamp));
 
-    Buy command = new Buy("Tiger#2", 1L);
-    mockMvc.perform(put("/buy")
-        .content(this.json(command))
+    mockMvc.perform(put("/buy/Lion/1")
         .contentType(contentType))
         .andExpect(status().isBadRequest());// Must fail because Tiger#2 is already there.
 
     Collection<EventLogEntry> eventLogs =
-        eventLogRepository.findByIdAndSequenceIdLessThan("Tiger#2", 1L,
+        eventLogRepository.findByIdAndSequenceIdLessThan("Lion", 1L,
             new Sort(Sort.Direction.ASC, "occurence"));
 
     assertEquals(1, eventLogs.size());
 
     eventLogs.stream().forEach(eventLogEntry -> {
       assertEquals("Bought", eventLogEntry.getEvent());
-      assertEquals("Tiger#2", eventLogEntry.getId());
+      assertEquals("Lion", eventLogEntry.getId());
       assertEquals(new Long(0L), eventLogEntry.getSequenceId());
       assertEquals(timestamp, eventLogEntry.getOccurence());
     });
   }
 
-  private String json(Object o) throws IOException {
-    MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage();
-    this.mappingJackson2HttpMessageConverter.write(
-        o, MediaType.APPLICATION_JSON, mockHttpOutputMessage);
-    return mockHttpOutputMessage.getBodyAsString();
-  }
 }

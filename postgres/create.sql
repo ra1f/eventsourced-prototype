@@ -15,5 +15,4 @@ CREATE TABLE zoo (\
   optlock integer NOT NULL,\
   PRIMARY KEY (animal_id)\
 );
---CREATE INDEX eventsourced_agg_id_idx ON eventlog (agg_id);
 

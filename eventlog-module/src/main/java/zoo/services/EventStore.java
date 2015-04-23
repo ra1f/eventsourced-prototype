@@ -17,7 +17,6 @@ import zoo.exceptions.NotIdempotentException;
 import zoo.persistence.EventLogEntry;
 import zoo.persistence.EventLogRepository;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
@@ -42,28 +41,27 @@ public class EventStore {
    */
   public void save(Events<Event> events) throws NotIdempotentException {
 
-    ArrayList<Event> remainingEvents = new ArrayList<>();
     for (Event event : events.getEvents()) {
       try {
         eventLogRepository.insert(event.getAnimalId(),
             event.getSequenceId(),
             event.getClass().getSimpleName(),
             new Date());
-        remainingEvents.add(event);
       } catch (DataIntegrityViolationException e) {
         logger.info(String.format("%s already persisted in eventstore", event));
         checkIdempotency(event);
       }
     }
 
-    if (!remainingEvents.isEmpty()) {
-      Events remainder = new Events(events.getId(), events.getSequenceId(), remainingEvents);
-      publishSubject.onNext(remainder);
-    }
+    Events remainder = new Events(events.getId(), events.getSequenceId(), events.getEvents());
+    publishSubject.onNext(remainder);
   }
 
   public Collection<EventLogEntry> find(String animalId, Long sequenceId) {
-    return eventLogRepository.findByIdAndSequenceIdLessThan(animalId, sequenceId, new Sort(Sort.Direction.ASC, "sequenceId"));
+    return eventLogRepository.findByIdAndSequenceIdLessThan(
+        animalId,
+        sequenceId,
+        new Sort(Sort.Direction.ASC, "sequenceId"));
   }
 
   public Subscription subscribe(Action1<Events> onNext) {

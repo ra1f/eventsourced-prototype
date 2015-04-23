@@ -9,7 +9,6 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -18,12 +17,10 @@ import org.springframework.web.context.WebApplicationContext;
 import zoo.ZooEventLogApp;
 import zoo.commands.Buy;
 import zoo.commands.Digest;
-import zoo.commands.Sadden;
 import zoo.persistence.AnimalRepository;
 import zoo.persistence.EventLogRepository;
 import zoo.services.AnimalService;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -74,13 +71,6 @@ public class ViewQueryControllerTest {
   @Autowired
   private EventLogRepository eventLogRepository;
 
-  private String json(Object o) throws IOException {
-    MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage();
-    this.mappingJackson2HttpMessageConverter.write(
-        o, MediaType.APPLICATION_JSON, mockHttpOutputMessage);
-    return mockHttpOutputMessage.getBodyAsString();
-  }
-
   @Before
   public void setup() throws Exception {
     this.mockMvc = webAppContextSetup(webApplicationContext).build();
@@ -91,7 +81,7 @@ public class ViewQueryControllerTest {
   @Test
   public void notFoundTheNoneExisting() throws Exception {
 
-    mockMvc.perform(get("/animals/Bear1")
+    mockMvc.perform(get("/animals/Bear")
         .accept(contentType))
         .andExpect(status().isNotFound());
   }
@@ -99,16 +89,16 @@ public class ViewQueryControllerTest {
   @Test
   public void foundAfterBuying() throws Exception {
 
-    Buy buy = new Buy("Giraffe1");
+    Buy buy = new Buy("Giraffe");
     Long sequenceId = animalService.buy(buy);
 
     Thread.sleep(1000);
 
-    mockMvc.perform(get("/animals/Giraffe1")
+    mockMvc.perform(get("/animals/Giraffe")
         .accept(contentType))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.sequenceId", is(sequenceId.intValue())))
-        .andExpect(jsonPath("$.animalId", is("Giraffe1")))
+        .andExpect(jsonPath("$.animalId", is("Giraffe")))
         .andExpect(jsonPath("$.feelingOfSatiety", is("full")))
         .andExpect(jsonPath("$.mindstate", is("happy")))
         .andExpect(jsonPath("$.hygiene", is("tidy")));
@@ -137,9 +127,7 @@ public class ViewQueryControllerTest {
   public void boredToDeath() throws Exception {
 
     // Let's buy a kangaroo
-    Buy buy = new Buy("Kangaroo");
-    mockMvc.perform(put("/buy")
-        .content(this.json(buy))
+    mockMvc.perform(put("/buy/Kangaroo")
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
@@ -158,9 +146,7 @@ public class ViewQueryControllerTest {
         .andExpect(jsonPath("$.hygiene", is("tidy")));
 
     // The kangaroo is saddening
-    Sadden sadden = new Sadden("Kangaroo", 1L);
-    mockMvc.perform(put("/sadden")
-        .content(this.json(sadden))
+    mockMvc.perform(put("/sadden/Kangaroo/1")
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
@@ -179,9 +165,7 @@ public class ViewQueryControllerTest {
         .andExpect(jsonPath("$.hygiene", is("tidy")));
 
     // The kangaroo is even more saddening
-    sadden = new Sadden("Kangaroo", 2L);
-    mockMvc.perform(put("/sadden")
-        .content(this.json(sadden))
+    mockMvc.perform(put("/sadden/Kangaroo/2")
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
@@ -200,13 +184,11 @@ public class ViewQueryControllerTest {
         .andExpect(jsonPath("$.hygiene", is("tidy")));
 
     // The kangaroo is even more saddening
-    sadden = new Sadden("Kangaroo", 3L);
-    mockMvc.perform(put("/sadden")
-        .content(this.json(sadden))
+    mockMvc.perform(put("/sadden/Kangaroo/3")
         .contentType(contentType))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
-        .andExpect(jsonPath("$.sequenceId", is(3)));
+        .andExpect(jsonPath("$.sequenceId", is(4)));//Because of 2 events (3, 4)
 
     Thread.sleep(1000);
 
