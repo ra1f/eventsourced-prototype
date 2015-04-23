@@ -45,7 +45,7 @@ public abstract class Event {
 
   @Override
   public String toString() {
-    return "{" +
+    return this.getClass().getSimpleName() + "{" +
         "animalId='" + animalId + '\'' +
         ", sequenceId=" + sequenceId +
         '}';

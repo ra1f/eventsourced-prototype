@@ -35,6 +35,12 @@ public class AggregateLoader {
     } else if (eventLogEntry.getEvent().equals(Saddened.class.getSimpleName())) {
       return aggregate.asSaddenedEventApplier().applyEvent(new Saddened(eventLogEntry.getId(),
           eventLogEntry.getSequenceId()));
+    } else if (eventLogEntry.getEvent().equals(CleanedUp.class.getSimpleName())) {
+      return aggregate.asCleanedUpEventApplier().applyEvent(new CleanedUp(eventLogEntry.getId(),
+          eventLogEntry.getSequenceId()));
+    } else if (eventLogEntry.getEvent().equals(MessedUp.class.getSimpleName())) {
+      return aggregate.asMessedUpEventApplier().applyEvent(new MessedUp(eventLogEntry.getId(),
+          eventLogEntry.getSequenceId()));
     } else {
       throw new RuntimeException(String.format("Event %s not handled", eventLogEntry));
     }
@@ -55,6 +61,10 @@ public class AggregateLoader {
       return aggregate.asPlayedEventApplier().applyEvent((Played) event);
     } else if (event instanceof Saddened) {
       return aggregate.asSaddenedEventApplier().applyEvent((Saddened) event);
+    } else if (event instanceof CleanedUp) {
+      return aggregate.asCleanedUpEventApplier().applyEvent((CleanedUp) event);
+    } else if (event instanceof MessedUp) {
+      return aggregate.asMessedUpEventApplier().applyEvent((MessedUp) event);
     } else {
       throw new RuntimeException(String.format("Event %s not handled", event));
     }

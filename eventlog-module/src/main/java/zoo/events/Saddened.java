@@ -8,9 +8,4 @@ public class Saddened extends Event {
   public Saddened(String animalId, Long sequenceId) {
     super(animalId, sequenceId);
   }
-
-  @Override
-  public String toString() {
-    return "Saddened" + super.toString();
-  }
 }

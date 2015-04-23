@@ -8,9 +8,4 @@ public class Played extends Event {
   public Played(String animalId, Long sequenceId) {
     super(animalId, sequenceId);
   }
-
-  @Override
-  public String toString() {
-    return "Played" + super.toString();
-  }
 }

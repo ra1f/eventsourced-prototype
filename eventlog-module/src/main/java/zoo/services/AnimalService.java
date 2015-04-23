@@ -75,12 +75,22 @@ public class AnimalService {
     return events.getSequenceId();
   }
 
-  public void cleanUp(CleanUp cleanUp) throws AggregateLoadException, ZooException {
-    throw new ZooException("Not implemented");
+  public Long cleanUp(CleanUp cleanUp) throws AggregateLoadException, ZooException, NotIdempotentException {
+    AnimalAggregate animalAggregate = replay(cleanUp.getAnimalId(), cleanUp.getSequenceId());
+    Events<Event> events = animalAggregate.asCleanUpCommandHandler().handleCommand(cleanUp);
+    if (!events.getEvents().isEmpty()) {
+      eventStore.save(events);
+    }
+    return events.getSequenceId();
   }
 
-  public void messUp(MessUp messUp) throws AggregateLoadException, ZooException {
-    throw new ZooException("Not implemented");
+  public Long messUp(MessUp messUp) throws AggregateLoadException, ZooException, NotIdempotentException {
+    AnimalAggregate animalAggregate = replay(messUp.getAnimalId(), messUp.getSequenceId());
+    Events<Event> events = animalAggregate.asMessUpCommandHandler().handleCommand(messUp);
+    if (!events.getEvents().isEmpty()) {
+      eventStore.save(events);
+    }
+    return events.getSequenceId();
   }
 
   private AnimalAggregate replay(String id, Long sequenceId) throws AggregateLoadException {

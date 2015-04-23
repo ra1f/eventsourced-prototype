@@ -164,6 +164,37 @@ public class AnimalAggregate extends Aggregate {
     };
   }
 
+  public CommandHandler<CleanUp, Event> asCleanUpCommandHandler() {
+    return new CommandHandler<CleanUp, Event>() {
+      @Override
+      public Events<Event> handleCommand(CleanUp command) throws ZooException {
+        validateSequence(command);
+        validateExistence(command);
+        return new Events(command.getAnimalId(),
+            command.getSequenceId(),
+            Arrays.asList(new CleanedUp(command.getAnimalId(), command.getSequenceId())));
+      }
+    };
+  }
+
+  public CommandHandler<MessUp, Event> asMessUpCommandHandler() {
+    return new CommandHandler<MessUp, Event>() {
+      @Override
+      public Events<Event> handleCommand(MessUp command) throws ZooException {
+        validateSequence(command);
+        validateExistence(command);
+        List<Event> events = new ArrayList<>();
+        events.add(new MessedUp(command.getAnimalId(), command.getSequenceId()));
+        if (hygiene.isWorst()) {
+          events.add(new Died(command.getAnimalId(), command.getSequenceId() + 1));
+        }
+        return new Events(command.getAnimalId(),
+            command.getSequenceId() - 1 + events.size(),
+            events);
+      }
+    };
+  }
+
   // Event Appliers
 
   public EventApplier<Bought> asBoughtEventApplier() {
@@ -271,6 +302,36 @@ public class AnimalAggregate extends Aggregate {
     };
   }
 
+  public EventApplier<CleanedUp> asCleanedUpEventApplier() {
+    return new EventApplier<CleanedUp>() {
+      @Override
+      public AnimalAggregate applyEvent(CleanedUp event) {
+        return new AnimalAggregate(event.getAnimalId(),
+            event.getSequenceId(),
+            new Date(),
+            existing,
+            feelingOfSatiety,
+            mindstate,
+            hygiene.better());
+      }
+    };
+  }
+
+  public EventApplier<MessedUp> asMessedUpEventApplier() {
+    return new EventApplier<MessedUp>() {
+      @Override
+      public AnimalAggregate applyEvent(MessedUp event) {
+        return new AnimalAggregate(event.getAnimalId(),
+            event.getSequenceId(),
+            new Date(),
+            existing,
+            feelingOfSatiety,
+            mindstate,
+            hygiene.worse());
+      }
+    };
+  }
+
   private void validateExistence(Command command) throws NoSuchAnimalException {
     if (!existing) {
       throw new NoSuchAnimalException(command.toString());
@@ -282,27 +343,5 @@ public class AnimalAggregate extends Aggregate {
       throw new CommandNotInSequenceException();
     }
   }
-
-  /*private Events<Event> handleIdempotency(Command command, Collection<Event> events) throws CommandNotInSequenceException {
-
-    long nextSeqId = this.sequenceId + 1;
-
-    // Check for a gap
-    if (command.getSequenceId() > nextSeqId) {
-      throw new CommandNotInSequenceException(command.toString());
-    }
-
-    // Only add those events which are not yet saved, the other ones are ignored => Idempotency
-    Collection<Event> eventsToSave = new ArrayList<>();
-    for (Event event: events) {
-      if (event.getSequenceId() == nextSeqId) {
-        eventsToSave.add(event);
-        nextSeqId++;
-      }
-    }
-
-    Events<Event> retVal = new Events<>(command.getAnimalId(), this.sequenceId + events.size(), eventsToSave);
-    return retVal;
-  }*/
 
 }

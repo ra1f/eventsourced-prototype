@@ -8,9 +8,4 @@ public class Digested extends Event {
   public Digested(String animalId, Long sequenceId) {
     super(animalId, sequenceId);
   }
-
-  @Override
-  public String toString() {
-    return "Digested" + super.toString();
-  }
 }
