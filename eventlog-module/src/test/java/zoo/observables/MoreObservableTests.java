@@ -1,6 +1,7 @@
 package zoo.observables;
 
 import rx.Observable;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
@@ -16,40 +17,36 @@ public class MoreObservableTests {
 
     PublishSubject<String> publishSubject = PublishSubject.create();
 
-    Observable<String> observable = publishSubject.observeOn(Schedulers.newThread());
+    Observable<String> observable = Observable.just("Yo1", "Yo2", "Yo3", "Yo4", "Yo5", "Yo6")
+                                          .mergeWith(Observable.just("Man1", "Man2", "Man3", "Man4", "Man5", "Man6"))
+                                          .observeOn(Schedulers.newThread())
+                                          .mergeWith(publishSubject);
 
-    observable.subscribe(m -> {
-      Long id = Thread.currentThread().getId();
-      if (m.equals("Yo")) {
-        System.out.println(String.format("%d-yo: I know you, %s.", id, m));
-      } else {
-        System.out.println(String.format("%d-yo: I don't know you, %s. Go away.", id, m));
-      }
-    });
+    observable.subscribe(onNext("Yo"));
+    observable.subscribe(onNext("Man"));
+    observable.subscribe(onNext("Yep"));
+    observable.subscribe(onNext("Foo"));
+    observable.subscribe(onNext("Bar"));
 
-    observable.subscribe(m -> {
-      Long id = Thread.currentThread().getId();
-      if (m.equals("Man")) {
-        System.out.println(String.format("%d-man: I know you, %s.", id, m));
-      } else {
-        System.out.println(String.format("%d-man: I don't know you, %s. Go away.", id, m));
-      }
-    });
-
-    observable.subscribe(m -> {
-      Long id = Thread.currentThread().getId();
-      if (m.equals("Yep")) {
-        System.out.println(String.format("%d-yep: I know you, %s.", id, m));
-      } else {
-        System.out.println(String.format("%d-yep: I don't know you, %s. Go away.", id, m));
-      }
-    });
-
-    publishSubject.onNext("Yo");
-    publishSubject.onNext("Man");
-    publishSubject.onNext("Yep");
-
-    Thread.sleep(30000);
+    Thread.sleep(120000);
 
   }
+
+  private static Action1<String> onNext(String name) {
+    return m -> {
+      Long id = Thread.currentThread().getId();
+      if (m.startsWith(name)) {
+        System.out.println(String.format("%d-%s: I know you, %s.", id, name.toLowerCase(), m));
+      } else {
+        System.out.println(String.format("%d-%s: I don't know you, %s. Go away.", id, name.toLowerCase(), m));
+      }
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    };
+  }
+
 }
+

@@ -53,8 +53,7 @@ public class EventStore {
       }
     }
 
-    Events remainder = new Events(events.getId(), events.getSequenceId(), events.getEvents());
-    publishSubject.onNext(remainder);
+    publishSubject.onNext(events);
   }
 
   public Collection<EventLogEntry> find(String animalId, Long sequenceId) {
